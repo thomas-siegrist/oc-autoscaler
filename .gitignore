@@ -1,4 +1,9 @@
 *.class
+target
+
+*.iml
+.idea
+atlassian-ide-plugin.xml
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
