@@ -24,7 +24,10 @@ class ScalerService {
 
     fun scale(project: String, service: String, scale: Scale) {
 
-        val authResponseEntity = rest.getForEntity(URI("https://localhost:8443/oauth/authorize?client_id=openshift-challenging-client&response_type=token"), String::class.java)
+        val authResponseEntity = rest.getForEntity(
+                URI("https://localhost:8443/oauth/authorize?client_id=openshift-challenging-client&response_type=token"),
+                String::class.java
+        )
         val authToken = authResponseEntity.headers["access_token"]
 
         var uri = URI(
