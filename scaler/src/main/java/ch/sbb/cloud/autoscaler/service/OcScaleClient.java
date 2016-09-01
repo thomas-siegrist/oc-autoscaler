@@ -95,7 +95,7 @@ public class OcScaleClient {
 
     private HttpHeaders httpHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer J6W54uw9VVmiITKhI-zsvmVYgeO7UncfHfXdF1K6lSY");
+        headers.add("Authorization", "Bearer mzpCee0kwr8qrBiMR6ZlWLGOkY93bsPuOAbJCCa5-Jk");
         headers.add("Accept", "application/json");
         headers.add("Content-Type", "application/json");
         return headers;

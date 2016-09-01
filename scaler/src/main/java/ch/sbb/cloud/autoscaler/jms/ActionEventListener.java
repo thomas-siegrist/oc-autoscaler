@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 /**
  * Created by thomas on 04.08.16.
@@ -23,12 +24,20 @@ public class ActionEventListener {
     private OcScaleClient ocScaleClient;
 
     @RabbitListener(queues = "action-event-queue")
-    public void receive(String json) {
+    public void receive(byte[] jsonBytes) {
+        String json = null;
         try {
-            ActionEvent actionEvent = parse(json);
-            ocScaleClient.scale(actionEvent);
-        } catch (IOException e) {
-            LOG.error("Error during parsing of the input-message: " + json, e);
+            json = new String(jsonBytes, "UTF-8");
+            try {
+                ActionEvent actionEvent = parse(json);
+                ocScaleClient.scale(actionEvent);
+            } catch (IOException e) {
+                LOG.error("Error during parsing of the input-message: " + json, e);
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
     }
 

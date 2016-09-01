@@ -1,0 +1,12 @@
+server:
+  port: 8091
+spring:
+  application:
+    name: Scaler
+  profiles:
+    active: ${STAGE:local}
+  rabbitmq:
+          host: ${rabbitmq:localhost}
+          port: 5672
+          username: guest
+          password: guest
