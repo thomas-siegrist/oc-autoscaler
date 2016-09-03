@@ -1,4 +1,4 @@
-package ch.sbb.cloud.autoscaler.model.metricsevents;
+package ch.sbb.cloud.autoscaler.model;
 
 /**
  * Created by thomas on 01.09.16.

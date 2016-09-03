@@ -1,6 +1,6 @@
 package ch.sbb.cloud.autoscaler.jms;
 
-import ch.sbb.cloud.autoscaler.model.metricsevents.MetricsEvent;
+import ch.sbb.cloud.autoscaler.model.MetricsEvent;
 import ch.sbb.cloud.autoscaler.service.MetricsEventService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;

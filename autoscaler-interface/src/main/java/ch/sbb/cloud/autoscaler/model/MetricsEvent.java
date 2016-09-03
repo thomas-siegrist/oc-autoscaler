@@ -1,4 +1,4 @@
-package ch.sbb.cloud.autoscaler.model.metricsevents;
+package ch.sbb.cloud.autoscaler.model;
 
 import java.io.Serializable;
 
@@ -7,10 +7,19 @@ import java.io.Serializable;
  */
 public class MetricsEvent implements Serializable {
 
-    private String project;
-    private String service;
-    private Metrics metrics;
-    private Long value;
+    private final String project;
+    private final String service;
+    private final Metrics metrics;
+    private final String metricName;
+    private final Long value;
+
+    public MetricsEvent(String project, String service, Metrics metrics, String metricName, Long value) {
+        this.project = project;
+        this.service = service;
+        this.metricName = metricName;
+        this.metrics = metrics;
+        this.value = value;
+    }
 
     public String getProject() {
         return project;
@@ -23,32 +32,20 @@ public class MetricsEvent implements Serializable {
         return project + "|" + service + "|" + metrics.name();
     }
 
-    public void setProject(String project) {
-        this.project = project;
-    }
-
     public String getService() {
         return service;
-    }
-
-    public void setService(String service) {
-        this.service = service;
     }
 
     public Metrics getMetrics() {
         return metrics;
     }
 
-    public void setMetrics(Metrics metrics) {
-        this.metrics = metrics;
-    }
-
     public Long getValue() {
         return value;
     }
 
-    public void setValue(Long value) {
-        this.value = value;
+    public String getMetricName() {
+        return metricName;
     }
 
     @Override
@@ -61,7 +58,6 @@ public class MetricsEvent implements Serializable {
         if (!project.equals(that.project)) return false;
         if (!service.equals(that.service)) return false;
         return metrics.equals(that.metrics);
-
     }
 
     @Override

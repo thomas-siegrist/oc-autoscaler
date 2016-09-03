@@ -1,6 +1,6 @@
 package ch.sbb.cloud.autoscaler.service;
 
-import ch.sbb.cloud.autoscaler.model.metricsevents.MetricsEvent;
+import ch.sbb.cloud.autoscaler.model.MetricsEvent;
 import org.springframework.stereotype.Component;
 
 /**
