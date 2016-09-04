@@ -1,6 +1,5 @@
 package ch.sbb.cloud.autoscaler.model;
 
-import ch.sbb.cloud.autoscaler.model.metricsevents.Metrics;
 
 import javax.persistence.*;
 import java.io.Serializable;

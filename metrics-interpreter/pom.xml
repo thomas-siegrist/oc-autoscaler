@@ -60,7 +60,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-    </dependencies>
+
+		<dependency>
+			<groupId>ch.sbb.cloud.autoscaler</groupId>
+			<artifactId>autoscaler-interface</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
 
     <build>
         <plugins>

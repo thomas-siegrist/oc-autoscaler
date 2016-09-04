@@ -6,7 +6,7 @@ package ch.sbb.cloud.autoscaler.api;
 
 import ch.sbb.cloud.autoscaler.api.model.ConfigurationRequestBody;
 import ch.sbb.cloud.autoscaler.model.Configuration;
-import ch.sbb.cloud.autoscaler.model.metricsevents.Metrics;
+import ch.sbb.cloud.autoscaler.model.Metrics;
 import ch.sbb.cloud.autoscaler.repository.ConfigurationRepository;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,8 +78,7 @@ public class ConfigurationApi {
         return ResponseEntity.ok().build();
     }
 
-    private List<Configuration> findConfigurations(String project, String service, ConfigurationRequestBody
-            requestBody) {
+    private List<Configuration> findConfigurations(String project, String service, ConfigurationRequestBody requestBody) {
         Metrics metrics = requestBody.metrics;
         String metricsProviderService = requestBody.metricsProviderService;
         List<Configuration> configurations = configurationRepository.findByProjectAndTargetServiceAndMetricsAndMetricsProviderService(project, service, metrics, metricsProviderService);

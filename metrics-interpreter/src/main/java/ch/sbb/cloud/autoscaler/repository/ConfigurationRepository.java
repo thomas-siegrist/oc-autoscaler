@@ -1,7 +1,7 @@
 package ch.sbb.cloud.autoscaler.repository;
 
 import ch.sbb.cloud.autoscaler.model.Configuration;
-import ch.sbb.cloud.autoscaler.model.metricsevents.Metrics;
+import ch.sbb.cloud.autoscaler.model.Metrics;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;

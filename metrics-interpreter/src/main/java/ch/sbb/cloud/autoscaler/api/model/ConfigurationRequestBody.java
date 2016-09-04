@@ -1,6 +1,6 @@
 package ch.sbb.cloud.autoscaler.api.model;
 
-import ch.sbb.cloud.autoscaler.model.metricsevents.Metrics;
+import ch.sbb.cloud.autoscaler.model.Metrics;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
