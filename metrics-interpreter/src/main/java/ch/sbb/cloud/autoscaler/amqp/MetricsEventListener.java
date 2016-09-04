@@ -1,7 +1,7 @@
-package ch.sbb.cloud.autoscaler.jms;
+package ch.sbb.cloud.autoscaler.amqp;
 
 import ch.sbb.cloud.autoscaler.model.MetricsEvent;
-import ch.sbb.cloud.autoscaler.service.MetricsEventService;
+import ch.sbb.cloud.autoscaler.service.MetricsInterpreterService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,13 +20,13 @@ public class MetricsEventListener {
     private static final Logger LOG = LoggerFactory.getLogger(MetricsEventListener.class);
 
     @Autowired
-    private MetricsEventService metricsEventService;
+    private MetricsInterpreterService metricsEventService;
 
     @RabbitListener(queues = "metrics-event-queue")
     public void receive(String json) {
         try {
             MetricsEvent metricsEvent = parse(json);
-            metricsEventService.includeNewEvent(metricsEvent);
+            metricsEventService.postNewEvent(metricsEvent);
         } catch (IOException e) {
             LOG.error("Error during parsing of the input-message: " + json, e);
         }

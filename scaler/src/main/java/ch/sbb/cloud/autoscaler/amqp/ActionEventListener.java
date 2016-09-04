@@ -1,4 +1,4 @@
-package ch.sbb.cloud.autoscaler.jms;
+package ch.sbb.cloud.autoscaler.amqp;
 
 import ch.sbb.cloud.autoscaler.model.actionevents.ActionEvent;
 import ch.sbb.cloud.autoscaler.service.OcScaleClient;
