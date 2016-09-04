@@ -10,3 +10,9 @@ spring:
           port: 5672
           username: guest
           password: guest
+  data:
+    rest:
+      base-path: /api/autoscaler/
+  jpa:
+    hibernate:
+      ddl-auto: update

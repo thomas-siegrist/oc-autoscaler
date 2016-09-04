@@ -1,6 +1,8 @@
 package ch.sbb.cloud.autoscaler.service;
 
 import ch.sbb.cloud.autoscaler.model.metricsevents.MetricsEvent;
+import com.hazelcast.core.HazelcastInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,8 +11,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class MetricsEventService {
 
+    @Autowired
+    private HazelcastInstance hz;
+
     public void includeNewEvent(MetricsEvent metricsEvent) {
-        // TODO
+        hz
+                .getMap("Metrics")
+                .put(metricsEvent.composedUniqueId(), metricsEvent.getValue());
     }
 
 }
