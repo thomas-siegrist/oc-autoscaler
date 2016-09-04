@@ -81,7 +81,7 @@
                 <version>0.4.10</version>
                 <configuration>
                     <imageName>registry.openshift.local/usecase/${project.artifactId}</imageName>
-                    <dockerDirectory>src/main/docker</dockerDirectory>
+                    <dockerDirectory>docker</dockerDirectory>
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>
