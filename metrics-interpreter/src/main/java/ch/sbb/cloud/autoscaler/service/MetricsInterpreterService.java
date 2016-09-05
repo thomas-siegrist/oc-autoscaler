@@ -2,6 +2,8 @@ package ch.sbb.cloud.autoscaler.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.ToLongFunction;
+import java.util.stream.Collectors;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import ch.sbb.cloud.autoscaler.model.actionevents.ActionEvent;
 import ch.sbb.cloud.autoscaler.model.actionevents.Scale;
 import ch.sbb.cloud.autoscaler.repository.ConfigurationRepository;
 
+import com.hazelcast.config.MultiMapConfig;
 import com.hazelcast.core.HazelcastInstance;
 
 /**
@@ -22,8 +25,10 @@ import com.hazelcast.core.HazelcastInstance;
 public class MetricsInterpreterService {
 
     private static final long SCALE_UP_DELAY_IN_MINUTES = 1;
+    private static final String HZ_METRICS_MAP = "Metrics";
+    public static final String HZ_LAST_SCALED_UP_MAP = "Last-Scaled-up";
+
     @Autowired
-    // TODO: aggregate with Hazelcast
     private HazelcastInstance hz;
 
     @Autowired
@@ -32,6 +37,16 @@ public class MetricsInterpreterService {
     @Autowired
     private ConfigurationRepository configurationRepository;
 
+    public MetricsInterpreterService() {
+        MultiMapConfig multiMapConfig = new MultiMapConfig();
+        multiMapConfig
+                .setName(HZ_METRICS_MAP)
+                .setBackupCount(0)
+                .setAsyncBackupCount(1)
+                .setValueCollectionType(MultiMapConfig.ValueCollectionType.LIST);
+        hz.getConfig().addMultiMapConfig(multiMapConfig);
+    }
+
     public void postNewEvent(MetricsEvent metricsEvent) {
         persistInHazelcast(metricsEvent);
         interpreteEvent(metricsEvent);
@@ -39,7 +54,7 @@ public class MetricsInterpreterService {
 
     private void persistInHazelcast(MetricsEvent metricsEvent) {
         hz
-                .getMultiMap("Metrics")
+                .getMultiMap(HZ_METRICS_MAP)
                 .put(
                         metricsEvent.composedUniqueId(),
                         metricsEvent.getValue()
@@ -51,7 +66,7 @@ public class MetricsInterpreterService {
         if (configuration == null)
             return; // No Config => No Action
 
-        Long value = metricsEvent.getValue();
+        Long value = calculateValue(metricsEvent);
         if (value >= configuration.getScaleUp()) {
             scaleUp(metricsEvent, configuration);
         }
@@ -62,11 +77,32 @@ public class MetricsInterpreterService {
         // Else: do nothing.
     }
 
+    private Long calculateValue(MetricsEvent metricsEvent) {
+        Long value = metricsEvent.getValue();
+        if (metricsEvent.getMetrics().isAggregate()) {
+            value = calculateAggregateFor(metricsEvent);
+        }
+        return value;
+    }
+
+    private Long calculateAggregateFor(MetricsEvent metricsEvent) {
+        List<Long> values = hz
+                .getMultiMap(HZ_METRICS_MAP)
+                .get(metricsEvent.composedUniqueId())
+                .stream()
+                .map(v -> (Long) v)
+                .collect(Collectors.toList());
+
+        return values.stream()
+                .skip(values.size() > 10 ? values.size() - 10 : 0)
+                .collect(Collectors.averagingLong(v -> v));
+    }
+
     private void scaleUp(MetricsEvent metricsEvent, Configuration configuration) {
         if (isUpscalingAllowed(metricsEvent)) {
             send(actionEventFor(configuration, Scale.UP));
             hz
-                    .getMap("Last-Scaled-up")
+                    .getMap(HZ_LAST_SCALED_UP_MAP)
                     .put(
                             metricsEvent.composedUniqueId(),
                             LocalDateTime.now()
@@ -75,7 +111,9 @@ public class MetricsInterpreterService {
     }
 
     private boolean isUpscalingAllowed(MetricsEvent metricsEvent) {
-        LocalDateTime lastUpScaling = (LocalDateTime) hz.getMap("Last-Scaled-up").get(metricsEvent.composedUniqueId());
+        LocalDateTime lastUpScaling = (LocalDateTime) hz
+                .getMap(HZ_LAST_SCALED_UP_MAP)
+                .get(metricsEvent.composedUniqueId());
         return lastUpScaling.isAfter(LocalDateTime.now().minusMinutes(SCALE_UP_DELAY_IN_MINUTES));
     }
 

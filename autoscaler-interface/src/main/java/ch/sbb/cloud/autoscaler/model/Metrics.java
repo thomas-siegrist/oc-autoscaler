@@ -5,13 +5,23 @@ package ch.sbb.cloud.autoscaler.model;
  */
 public enum Metrics {
 
-    SERVER_SIDE_RESPONSETIME,
-    CLIENT_SIDE_RESPONSETIME,
-    QUEUE_DEPTH,
-    NUMBER_OF_HTTP_CONNECTIONS,
-    MEMORY,
-    CPU,
-    THREAD_COUNT,
-    DB_RESPONSE_TIME
+    SERVER_SIDE_RESPONSETIME(true),
+    CLIENT_SIDE_RESPONSETIME(true),
+    QUEUE_DEPTH(false),
+    NUMBER_OF_HTTP_CONNECTIONS(false),
+    MEMORY(false),
+    CPU(true),
+    THREAD_COUNT(false),
+    DB_RESPONSE_TIME(true);
+
+    private boolean isAggregate;
+
+    Metrics(boolean isAggregate) {
+        this.isAggregate = isAggregate;
+    }
+
+    public boolean isAggregate() {
+        return isAggregate;
+    }
 
 }
