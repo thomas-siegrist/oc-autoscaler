@@ -1,15 +1,15 @@
 package ch.sbb.cloud.autoscaler.repository;
 
-import ch.sbb.cloud.autoscaler.model.Configuration;
-import ch.sbb.cloud.autoscaler.model.Metrics;
+import java.util.List;
+
 import org.springframework.data.repository.CrudRepository;
 
-import java.util.List;
+import ch.sbb.cloud.autoscaler.model.Configuration;
 
 /**
  * Created by thomas on 01.09.16.
  */
 public interface ConfigurationRepository extends CrudRepository<Configuration, Long> {
 
-    List<Configuration> findByProjectAndTargetServiceAndMetricsAndMetricsProviderService(String project, String service, Metrics metrics, String metricsProviderService);
+    List<Configuration> findByProjectAndServiceAndMetricName(String project, String service, String metricName);
 }

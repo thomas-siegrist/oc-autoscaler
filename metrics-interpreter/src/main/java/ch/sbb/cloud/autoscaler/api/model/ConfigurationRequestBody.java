@@ -13,7 +13,7 @@ import java.io.Serializable;
 public class ConfigurationRequestBody implements Serializable {
 
     @JsonProperty(required = true)
-    public String metricsProviderService;
+    public String metricName;
 
     @JsonProperty(required = true)
     public Metrics metrics;

@@ -1,8 +1,15 @@
 package ch.sbb.cloud.autoscaler.model;
 
 
-import javax.persistence.*;
 import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 /**
  * Created by thomas on 01.09.16.
@@ -10,8 +17,8 @@ import java.io.Serializable;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(
         name = "Domain-Key",
-        columnNames = {"project", "target_service", "metrics_provider_service", "metrics"}
-))
+        columnNames = { "project", "service", "metric_name" }
+        ))
 public class Configuration implements Serializable {
 
     @Id
@@ -21,11 +28,11 @@ public class Configuration implements Serializable {
     @Column(name = "project")
     private String project;
 
-    @Column(name = "target_service")
-    private String targetService;
+    @Column(name = "service")
+    private String service;
 
-    @Column(name = "metrics_provider_service")
-    private String metricsProviderService;
+    @Column(name = "metric_name")
+    private String metricName;
 
     @Column(name = "metrics")
     private Metrics metrics;
@@ -52,20 +59,20 @@ public class Configuration implements Serializable {
         this.project = project;
     }
 
-    public String getTargetService() {
-        return targetService;
+    public String getService() {
+        return service;
     }
 
-    public void setTargetService(String targetService) {
-        this.targetService = targetService;
+    public void setService(String service) {
+        this.service = service;
     }
 
-    public String getMetricsProviderService() {
-        return metricsProviderService;
+    public String getMetricName() {
+        return metricName;
     }
 
-    public void setMetricsProviderService(String metricsProviderService) {
-        this.metricsProviderService = metricsProviderService;
+    public void setMetricName(String metricName) {
+        this.metricName = metricName;
     }
 
     public Metrics getMetrics() {

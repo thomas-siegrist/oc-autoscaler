@@ -29,7 +29,7 @@ public class MetricsEvent implements Serializable {
      * @return The uniqe identifier of the Metrics-Event as String. It is meant to be the unique identifier for grouping and scaling.
      */
     public String composedUniqueId() {
-        return project + "|" + service + "|" + metrics.name();
+        return project + "|" + service + "|" + metricName;
     }
 
     public String getService() {
