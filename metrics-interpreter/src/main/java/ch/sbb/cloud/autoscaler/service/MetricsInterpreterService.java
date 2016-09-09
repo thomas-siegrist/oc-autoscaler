@@ -95,7 +95,8 @@ public class MetricsInterpreterService {
 
         return values.stream()
                 .skip(values.size() > 10 ? values.size() - 10 : 0)
-                .collect(Collectors.averagingLong(v -> v));
+                .collect(Collectors.averagingLong(v -> v))
+                .longValue();
     }
 
     private void scaleUp(MetricsEvent metricsEvent, Configuration configuration) {
