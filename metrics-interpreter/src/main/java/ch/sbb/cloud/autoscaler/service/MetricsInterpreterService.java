@@ -2,9 +2,12 @@ package ch.sbb.cloud.autoscaler.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,6 +29,8 @@ import javax.annotation.PostConstruct;
 @Component
 public class MetricsInterpreterService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MetricsInterpreterService.class);
+
     private static final long SCALE_UP_DELAY_IN_MINUTES = 1;
     private static final String HZ_METRICS_MAP = "Metrics";
     public static final String HZ_LAST_SCALED_UP_MAP = "Last-Scaled-up";
@@ -35,6 +40,9 @@ public class MetricsInterpreterService {
 
     @Autowired
     private RabbitTemplate amqp;
+
+    @Autowired
+    private RabbitTemplate template;
 
     @Autowired
     private ConfigurationRepository configurationRepository;
@@ -52,7 +60,7 @@ public class MetricsInterpreterService {
 
     public void postNewEvent(MetricsEvent metricsEvent) {
         persistInHazelcast(metricsEvent);
-        interpreteEvent(metricsEvent);
+        interpretEvent(metricsEvent);
     }
 
     private void persistInHazelcast(MetricsEvent metricsEvent) {
@@ -64,20 +72,23 @@ public class MetricsInterpreterService {
                 );
     }
 
-    private void interpreteEvent(MetricsEvent metricsEvent) {
+    private void interpretEvent(MetricsEvent metricsEvent) {
         Configuration configuration = searchForMatchingConfiguration(metricsEvent);
-        if (configuration == null)
+        if (configuration == null) {
+            LOG.warn("No metrics configuration found for {}", metricsEvent.composedUniqueId());
             return; // No Config => No Action
+        }
 
         Long value = calculateValue(metricsEvent);
         if (value >= configuration.getScaleUp()) {
+            LOG.info("Scaling up service {}", metricsEvent.getService());
             scaleUp(metricsEvent, configuration);
-        }
-        if (value <= configuration.getScaleDown()) {
+        } else if (value <= configuration.getScaleDown()) {
+            LOG.info("Scaling down service {}", metricsEvent.getService());
             scaleDown(configuration);
+        } else {
+            LOG.info("No scaling required for service {}", metricsEvent.getService());
         }
-
-        // Else: do nothing.
     }
 
     private Long calculateValue(MetricsEvent metricsEvent) {
@@ -118,7 +129,7 @@ public class MetricsInterpreterService {
         LocalDateTime lastUpScaling = (LocalDateTime) hz
                 .getMap(HZ_LAST_SCALED_UP_MAP)
                 .get(metricsEvent.composedUniqueId());
-        return lastUpScaling.isAfter(LocalDateTime.now().minusMinutes(SCALE_UP_DELAY_IN_MINUTES));
+        return lastUpScaling == null || lastUpScaling.isAfter(LocalDateTime.now().minusMinutes(SCALE_UP_DELAY_IN_MINUTES));
     }
 
     private void scaleDown(Configuration configuration) {
@@ -126,9 +137,10 @@ public class MetricsInterpreterService {
     }
 
     private Configuration searchForMatchingConfiguration(MetricsEvent metricsEvent) {
-        List<Configuration> configurations = configurationRepository.findByProjectAndServiceAndMetricName(
+        List<Configuration> configurations = configurationRepository.findByProjectAndServiceAndMetricsAndMetricName(
                 metricsEvent.getProject(),
                 metricsEvent.getService(),
+                metricsEvent.getMetrics(),
                 metricsEvent.getMetricName()
                 );
 
@@ -140,17 +152,29 @@ public class MetricsInterpreterService {
 
     private ActionEvent actionEventFor(Configuration configuration, Scale scale) {
         ActionEvent actionEvent = new ActionEvent();
-        actionEvent.project = configuration.getProject();
-        actionEvent.service = configuration.getService();
-        actionEvent.scale = scale;
+        actionEvent.setProject(configuration.getProject());
+        actionEvent.setService(configuration.getService());
+        actionEvent.setScale(scale);
         return actionEvent;
     }
 
     private void send(ActionEvent actionEvent) {
-        amqp.convertAndSend(
+
+        template.convertAndSend("action-event-queue", toJson(actionEvent));
+
+        /*amqp.convertAndSend(
                 "amq.direct",
                 "action-event-queue",
-                actionEvent);
+                actionEvent);*/
+    }
+
+    private String toJson(ActionEvent event) {
+        try {
+            return new ObjectMapper().writeValueAsString(event);
+        } catch (JsonProcessingException e) {
+            LOG.error("Error converting ActionEvent to JSON!", e);
+            return null;
+        }
     }
 
 }

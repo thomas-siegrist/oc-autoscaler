@@ -16,7 +16,7 @@ import java.io.UnsupportedEncodingException;
  * Created by thomas on 04.08.16.
  */
 @Component
-public class ActionEventListener {
+class ActionEventListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(ActionEventListener.class);
 
@@ -24,20 +24,13 @@ public class ActionEventListener {
     private OcScaleClient ocScaleClient;
 
     @RabbitListener(queues = "action-event-queue")
-    public void receive(byte[] jsonBytes) {
-        String json = null;
+    public void receive(String json) {
+
         try {
-            json = new String(jsonBytes, "UTF-8");
-            try {
-                ActionEvent actionEvent = parse(json);
-                ocScaleClient.scale(actionEvent);
-            } catch (IOException e) {
-                LOG.error("Error during parsing of the input-message: " + json, e);
-            }
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (Throwable t) {
-            t.printStackTrace();
+            ActionEvent actionEvent = parse(json);
+            ocScaleClient.scale(actionEvent);
+        } catch (IOException e) {
+            LOG.error("Error during parsing of the input-message: " + json, e);
         }
     }
 

@@ -39,7 +39,7 @@ public class OcScaleClient {
 
     public void scale(ActionEvent actionEvent) {
         ResponseEntity<String> currentDeploymentConfig = rest.exchange(
-                "https://192.168.99.1:8443/oapi/v1/namespaces/{project}/deploymentconfigs/{service}"
+                "https://192.168.0.213:8443/oapi/v1/namespaces/{project}/deploymentconfigs/{service}"
                         .replace("{project}", actionEvent.project)
                         .replace("{service}", actionEvent.service),
                 HttpMethod.GET,
@@ -53,7 +53,7 @@ public class OcScaleClient {
         if (newNumberOfRelpicas >= 0) {
             LOG.info("Scaling " + actionEvent.project + ":" + actionEvent.service + " to {" + newNumberOfRelpicas + "}");
             rest.put(
-                    "https://192.168.99.1:8443/oapi/v1/namespaces/{project}/deploymentconfigs/{service}/scale"
+                    "https://192.168.0.213:8443/oapi/v1/namespaces/{project}/deploymentconfigs/{service}/scale"
                             .replace("{project}", actionEvent.project)
                             .replace("{service}", actionEvent.service),
                     httpEntity(actionEvent, newNumberOfRelpicas)
@@ -95,7 +95,7 @@ public class OcScaleClient {
 
     private HttpHeaders httpHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer mzpCee0kwr8qrBiMR6ZlWLGOkY93bsPuOAbJCCa5-Jk");
+        headers.add("Authorization", "Bearer 17BgH9m2xb6HOpR9lzRAHZCa4eoFjOeABhF8Unzkzgw");
         headers.add("Accept", "application/json");
         headers.add("Content-Type", "application/json");
         return headers;

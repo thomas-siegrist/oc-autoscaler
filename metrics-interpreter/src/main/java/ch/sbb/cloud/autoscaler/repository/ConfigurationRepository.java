@@ -2,6 +2,7 @@ package ch.sbb.cloud.autoscaler.repository;
 
 import java.util.List;
 
+import ch.sbb.cloud.autoscaler.model.Metrics;
 import org.springframework.data.repository.CrudRepository;
 
 import ch.sbb.cloud.autoscaler.model.Configuration;
@@ -11,5 +12,7 @@ import ch.sbb.cloud.autoscaler.model.Configuration;
  */
 public interface ConfigurationRepository extends CrudRepository<Configuration, Long> {
 
-    List<Configuration> findByProjectAndServiceAndMetricName(String project, String service, String metricName);
+    List<Configuration> findByProjectAndServiceAndMetricsAndMetricName(String project, String service, Metrics metrics, String metricName);
+
+    List<Configuration> findByProjectAndServiceAndMetrics(String project, String service, Metrics metrics);
 }

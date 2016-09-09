@@ -6,6 +6,8 @@ package ch.sbb.cloud.autoscaler.api;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,8 @@ import ch.sbb.cloud.autoscaler.repository.ConfigurationRepository;
 @RestController()
 @RequestMapping("/autoscaler/configurations")
 public class ConfigurationApi {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ConfigurationApi.class);
 
     @Autowired
     private RabbitTemplate template;
@@ -63,6 +67,7 @@ public class ConfigurationApi {
             Configuration configuration = configurations.get(0);
             configuration.setScaleUp(requestBody.scaleUp);
             configuration.setScaleDown(requestBody.scaleDown);
+            configuration.setMetricName(requestBody.metricName);
             configurationRepository.save(configuration);
             return ResponseEntity.ok().build();
         }
@@ -70,15 +75,15 @@ public class ConfigurationApi {
 
     @Transactional
     @RequestMapping(
-            path = "{project}/{service}/{metricName}",
+            path = "{project}/{service}/{metrics}/{metricName}",
             method = RequestMethod.DELETE
             )
             public ResponseEntity<Void> deleteConfiguration(
                     @PathVariable(value = "project") String project,
                     @PathVariable(value = "service") String service,
-                    @PathVariable(value = "metricName") String metricName
+                    @PathVariable(value = "metrics") Metrics metrics
             ) {
-        List<Configuration> configurations = configurationRepository.findByProjectAndServiceAndMetricName(project, service, metricName);
+        List<Configuration> configurations = configurationRepository.findByProjectAndServiceAndMetrics(project, service, metrics);
         if (configurations.size() == 0) {
             return ResponseEntity.status(HttpStatus.GONE).build();
         }
@@ -89,9 +94,9 @@ public class ConfigurationApi {
     private List<Configuration> findConfigurations(String project, String service, ConfigurationRequestBody requestBody) {
         Metrics metrics = requestBody.metrics;
         String metricName = requestBody.metricName;
-        List<Configuration> configurations = configurationRepository.findByProjectAndServiceAndMetricName(project, service, metricName);
+        List<Configuration> configurations = configurationRepository.findByProjectAndServiceAndMetricsAndMetricName(project, service, metrics, metricName);
         if (configurations.size() > 1)
-            System.out.println("Uuups, Configuration exists more than once: " + project + "|" + service + "|" + requestBody);
+            LOG.info("Uuups, Configuration exists more than once: {} | {} | {}", project, service, requestBody);
         return configurations;
     }
 
@@ -100,6 +105,7 @@ public class ConfigurationApi {
         configuration.setProject(project);
         configuration.setService(service);
         configuration.setMetrics(requestBody.metrics);
+        configuration.setMetricName(requestBody.metricName);
         configuration.setScaleUp(requestBody.scaleUp);
         configuration.setScaleDown(requestBody.scaleDown);
         return configuration;
