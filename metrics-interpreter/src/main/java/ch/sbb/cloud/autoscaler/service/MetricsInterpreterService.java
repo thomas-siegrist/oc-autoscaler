@@ -18,6 +18,8 @@ import ch.sbb.cloud.autoscaler.repository.ConfigurationRepository;
 import com.hazelcast.config.MultiMapConfig;
 import com.hazelcast.core.HazelcastInstance;
 
+import javax.annotation.PostConstruct;
+
 /**
  * Created by thomas on 01.09.16.
  */
@@ -37,7 +39,8 @@ public class MetricsInterpreterService {
     @Autowired
     private ConfigurationRepository configurationRepository;
 
-    public MetricsInterpreterService() {
+    @PostConstruct
+    public void init() {
         MultiMapConfig multiMapConfig = new MultiMapConfig();
         multiMapConfig
                 .setName(HZ_METRICS_MAP)

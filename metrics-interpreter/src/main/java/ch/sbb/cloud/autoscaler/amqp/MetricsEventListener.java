@@ -24,6 +24,9 @@ public class MetricsEventListener {
 
     @RabbitListener(queues = "metrics-event-queue")
     public void receive(String json) {
+
+        LOG.info("Received metrics event: {}", json);
+
         try {
             MetricsEvent metricsEvent = parse(json);
             metricsEventService.postNewEvent(metricsEvent);
