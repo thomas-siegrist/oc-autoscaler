@@ -2,9 +2,11 @@ package ch.sbb.cloud.autoscaler.service;
 
 import ch.sbb.cloud.autoscaler.model.Configuration;
 import ch.sbb.cloud.autoscaler.model.MetricsEvent;
+import ch.sbb.cloud.autoscaler.model.ServiceLimit;
 import ch.sbb.cloud.autoscaler.model.actionevents.ActionEvent;
 import ch.sbb.cloud.autoscaler.model.actionevents.Scale;
 import ch.sbb.cloud.autoscaler.repository.ConfigurationRepository;
+import ch.sbb.cloud.autoscaler.repository.ServiceLimitRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.MultiMapConfig;
@@ -46,6 +48,9 @@ public class MetricsInterpreterService {
 
     @Autowired
     private ConfigurationRepository configurationRepository;
+
+    @Autowired
+    private ServiceLimitRepository serviceLimitRepository;
 
     @PostConstruct
     public void init() {
@@ -129,7 +134,7 @@ public class MetricsInterpreterService {
         LocalDateTime lastUpScaling = (LocalDateTime) hz
                 .getMap(HZ_LAST_SCALED_UP_MAP)
                 .get(metricsEvent.composedUniqueId());
-        return lastUpScaling == null || lastUpScaling.isAfter(LocalDateTime.now().minusSeconds(SCALE_UP_DELAY_IN_SECONDS));
+        return lastUpScaling == null || lastUpScaling.isBefore(LocalDateTime.now().minusSeconds(SCALE_UP_DELAY_IN_SECONDS));
     }
 
     private void scaleDown(MetricsEvent metricsEvent, Configuration configuration) {
@@ -148,7 +153,7 @@ public class MetricsInterpreterService {
         LocalDateTime lastDownScaling = (LocalDateTime) hz
                 .getMap(HZ_LAST_SCALED_DOWN_MAP)
                 .get(metricsEvent.composedUniqueId());
-        return lastDownScaling == null || lastDownScaling.isAfter(LocalDateTime.now().minusSeconds(SCALE_DOWN_DELAY_IN_SECONDS));
+        return lastDownScaling == null || lastDownScaling.isBefore(LocalDateTime.now().minusSeconds(SCALE_DOWN_DELAY_IN_SECONDS));
     }
 
     private Configuration searchForMatchingConfiguration(MetricsEvent metricsEvent) {
@@ -166,11 +171,32 @@ public class MetricsInterpreterService {
     }
 
     private ActionEvent actionEventFor(Configuration configuration, Scale scale) {
+
+        String project = configuration.getProject();
+        String service = configuration.getService();
+
         ActionEvent actionEvent = new ActionEvent();
-        actionEvent.setProject(configuration.getProject());
-        actionEvent.setService(configuration.getService());
+        actionEvent.setProject(project);
+        actionEvent.setService(service);
         actionEvent.setScale(scale);
+
+        ServiceLimit serviceLimit = getServiceLimitFor(project, service);
+        if (serviceLimit != null) {
+            actionEvent.setMinReplicas(serviceLimit.getMinPods());
+            actionEvent.setMaxReplicas(serviceLimit.getMaxPods());
+        }
+
         return actionEvent;
+    }
+
+    private ServiceLimit getServiceLimitFor(String project, String service) {
+        List<ServiceLimit> limits = serviceLimitRepository.findByProjectAndService(project, service);
+        if (limits.size() == 1) {
+            return limits.get(0);
+        } else {
+            LOG.error("No or invalid service limits defined for service {}:{}", project, service);
+            return null;
+        }
     }
 
     private void send(ActionEvent actionEvent) {

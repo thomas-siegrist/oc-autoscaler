@@ -44,12 +44,23 @@ public class OcScaleClient {
 
     public void scale(ActionEvent actionEvent) {
 
+        Long minReplicas = actionEvent.minReplicas;
+        Long maxReplicas = actionEvent.maxReplicas;
         Integer currentReplicas = getReplicasForService(actionEvent.project, actionEvent.service);
 
         int newNumberOfReplicas = newNumberOfReplicas(actionEvent.scale, currentReplicas);
-        if (newNumberOfReplicas >= 0) {
-            LOG.info("Scaling " + actionEvent.project + ":" + actionEvent.service + " to {" + newNumberOfReplicas + "}");
+        if (newNumberOfReplicas >= minReplicas && newNumberOfReplicas <= maxReplicas) {
+            LOG.info("Scaling {}:{} to {}", actionEvent.project, actionEvent.service, newNumberOfReplicas);
             setReplicasForService(actionEvent.project, actionEvent.service, newNumberOfReplicas);
+        } else {
+            LOG.info(
+                    "No scaling required for {}:{}. Replicas:{}, min:{}, max:{}",
+                    actionEvent.project,
+                    actionEvent.service,
+                    currentReplicas,
+                    minReplicas,
+                    maxReplicas
+            );
         }
     }
 

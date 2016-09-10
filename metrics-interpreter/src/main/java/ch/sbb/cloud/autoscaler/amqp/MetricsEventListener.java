@@ -28,7 +28,7 @@ public class MetricsEventListener {
         try {
             MetricsEvent metricsEvent = parse(json);
 
-            LOG.info("Received metrics event with unique id: {}, value: ",
+            LOG.info("Received metrics event with unique id: {}, value: {}",
                     metricsEvent.composedUniqueId(), metricsEvent.getValue());
 
             metricsEventService.postNewEvent(metricsEvent);
