@@ -1,27 +1,24 @@
 package ch.sbb.cloud.autoscaler.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import ch.sbb.cloud.autoscaler.model.Configuration;
+import ch.sbb.cloud.autoscaler.model.MetricsEvent;
+import ch.sbb.cloud.autoscaler.model.actionevents.ActionEvent;
+import ch.sbb.cloud.autoscaler.model.actionevents.Scale;
+import ch.sbb.cloud.autoscaler.repository.ConfigurationRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hazelcast.config.MultiMapConfig;
+import com.hazelcast.core.HazelcastInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import ch.sbb.cloud.autoscaler.model.Configuration;
-import ch.sbb.cloud.autoscaler.model.MetricsEvent;
-import ch.sbb.cloud.autoscaler.model.actionevents.ActionEvent;
-import ch.sbb.cloud.autoscaler.model.actionevents.Scale;
-import ch.sbb.cloud.autoscaler.repository.ConfigurationRepository;
-
-import com.hazelcast.config.MultiMapConfig;
-import com.hazelcast.core.HazelcastInstance;
-
 import javax.annotation.PostConstruct;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by thomas on 01.09.16.
@@ -31,9 +28,12 @@ public class MetricsInterpreterService {
 
     private static final Logger LOG = LoggerFactory.getLogger(MetricsInterpreterService.class);
 
-    private static final long SCALE_UP_DELAY_IN_MINUTES = 1;
-    private static final String HZ_METRICS_MAP = "Metrics";
+    private static final long SCALE_UP_DELAY_IN_SECONDS = 20;
+    private static final long SCALE_DOWN_DELAY_IN_SECONDS = 60;
+
+    public static final String HZ_METRICS_MAP = "Metrics";
     public static final String HZ_LAST_SCALED_UP_MAP = "Last-Scaled-up";
+    public static final String HZ_LAST_SCALED_DOWN_MAP = "Last-Scaled-down";
 
     @Autowired
     private HazelcastInstance hz;
@@ -85,7 +85,7 @@ public class MetricsInterpreterService {
             scaleUp(metricsEvent, configuration);
         } else if (value <= configuration.getScaleDown()) {
             LOG.info("Scaling down service {}", metricsEvent.getService());
-            scaleDown(configuration);
+            scaleDown(metricsEvent, configuration);
         } else {
             LOG.info("No scaling required for service {}", metricsEvent.getService());
         }
@@ -129,11 +129,26 @@ public class MetricsInterpreterService {
         LocalDateTime lastUpScaling = (LocalDateTime) hz
                 .getMap(HZ_LAST_SCALED_UP_MAP)
                 .get(metricsEvent.composedUniqueId());
-        return lastUpScaling == null || lastUpScaling.isAfter(LocalDateTime.now().minusMinutes(SCALE_UP_DELAY_IN_MINUTES));
+        return lastUpScaling == null || lastUpScaling.isAfter(LocalDateTime.now().minusSeconds(SCALE_UP_DELAY_IN_SECONDS));
     }
 
-    private void scaleDown(Configuration configuration) {
-        send(actionEventFor(configuration, Scale.DOWN));
+    private void scaleDown(MetricsEvent metricsEvent, Configuration configuration) {
+        if (isDownscalingAllowed(metricsEvent)) {
+            send(actionEventFor(configuration, Scale.DOWN));
+            hz
+                    .getMap(HZ_LAST_SCALED_DOWN_MAP)
+                    .put(
+                            metricsEvent.composedUniqueId(),
+                            LocalDateTime.now()
+                    );
+        }
+    }
+
+    private boolean isDownscalingAllowed(MetricsEvent metricsEvent) {
+        LocalDateTime lastDownScaling = (LocalDateTime) hz
+                .getMap(HZ_LAST_SCALED_DOWN_MAP)
+                .get(metricsEvent.composedUniqueId());
+        return lastDownScaling == null || lastDownScaling.isAfter(LocalDateTime.now().minusSeconds(SCALE_DOWN_DELAY_IN_SECONDS));
     }
 
     private Configuration searchForMatchingConfiguration(MetricsEvent metricsEvent) {
@@ -142,7 +157,7 @@ public class MetricsInterpreterService {
                 metricsEvent.getService(),
                 metricsEvent.getMetrics(),
                 metricsEvent.getMetricName()
-                );
+        );
 
         if (configurations.size() > 0) {
             return configurations.get(0);
@@ -159,13 +174,7 @@ public class MetricsInterpreterService {
     }
 
     private void send(ActionEvent actionEvent) {
-
         template.convertAndSend("action-event-queue", toJson(actionEvent));
-
-        /*amqp.convertAndSend(
-                "amq.direct",
-                "action-event-queue",
-                actionEvent);*/
     }
 
     private String toJson(ActionEvent event) {
