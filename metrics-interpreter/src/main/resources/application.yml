@@ -15,4 +15,14 @@ spring:
       base-path: /api/autoscaler/
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+    #properties:
+    #  javax:
+    #    persistence:
+    #      schema-generation:
+    #        create-source: metadata
+    #        scripts:
+    #          action: create
+    #          create-target: create.sql
+flyway:
+  baseline-on-migrate:  true

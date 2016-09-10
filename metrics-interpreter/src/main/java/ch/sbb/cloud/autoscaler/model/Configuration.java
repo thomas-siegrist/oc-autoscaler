@@ -3,22 +3,16 @@ package ch.sbb.cloud.autoscaler.model;
 
 import java.io.Serializable;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 
 /**
  * Created by thomas on 01.09.16.
  */
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(
-        name = "Domain-Key",
-        columnNames = { "project", "service", "metric_name" }
-        ))
+        name = "domainkey",
+        columnNames = {"project", "service", "metrics", "metric_name"}
+))
 public class Configuration implements Serializable {
 
     @Id
@@ -34,6 +28,7 @@ public class Configuration implements Serializable {
     @Column(name = "metric_name")
     private String metricName;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "metrics")
     private Metrics metrics;
 
