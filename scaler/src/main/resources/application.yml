@@ -10,3 +10,8 @@ spring:
           port: 5672
           username: guest
           password: guest
+
+openshift:
+  user: developer
+  password: developer
+  master: https://localhost:8443

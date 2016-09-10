@@ -4,3 +4,5 @@ spring:
     port: 5672
     username: guest
     password: guest
+openshift:
+  master: https://openshift.default.svc.cluster.local
