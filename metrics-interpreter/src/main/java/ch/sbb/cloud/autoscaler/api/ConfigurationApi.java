@@ -4,17 +4,25 @@ package ch.sbb.cloud.autoscaler.api;
  * Created by thomas on 01.09.16.
  */
 
-import ch.sbb.cloud.autoscaler.api.model.ConfigurationRequestBody;
-import ch.sbb.cloud.autoscaler.model.Configuration;
-import ch.sbb.cloud.autoscaler.model.Metrics;
-import ch.sbb.cloud.autoscaler.repository.ConfigurationRepository;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import ch.sbb.cloud.autoscaler.api.model.ConfigurationRequestBody;
+import ch.sbb.cloud.autoscaler.model.Configuration;
+import ch.sbb.cloud.autoscaler.model.Metrics;
+import ch.sbb.cloud.autoscaler.repository.ConfigurationRepository;
 
 /**
  * Created by thomas on 04.08.16.
@@ -22,6 +30,8 @@ import java.util.List;
 @RestController()
 @RequestMapping("/autoscaler/configurations")
 public class ConfigurationApi {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ConfigurationApi.class);
 
     @Autowired
     private RabbitTemplate template;
@@ -33,21 +43,22 @@ public class ConfigurationApi {
             path = "",
             produces = "application/json",
             method = RequestMethod.GET
-    )
-    public List<Configuration> getConfigurations() {
+            )
+            public List<Configuration> getConfigurations() {
         return (List<Configuration>) configurationRepository.findAll();
     }
 
+    @Transactional
     @RequestMapping(
             path = "{project}/{service}",
             consumes = "application/json",
             method = RequestMethod.POST
-    )
-    public ResponseEntity<Void> createConfiguration(
-            @PathVariable(value = "project") String project,
-            @PathVariable(value = "service") String service,
-            @RequestBody ConfigurationRequestBody requestBody
-    ) {
+            )
+            public ResponseEntity<Void> createConfiguration(
+                    @PathVariable(value = "project") String project,
+                    @PathVariable(value = "service") String service,
+                    @RequestBody ConfigurationRequestBody requestBody
+            ) {
         List<Configuration> configurations = findConfigurations(project, service, requestBody);
         if (configurations.size() == 0) {
             configurationRepository.save(newConfigurationFor(project, service, requestBody));
@@ -56,21 +67,23 @@ public class ConfigurationApi {
             Configuration configuration = configurations.get(0);
             configuration.setScaleUp(requestBody.scaleUp);
             configuration.setScaleDown(requestBody.scaleDown);
+            configuration.setMetricName(requestBody.metricName);
+            configurationRepository.save(configuration);
             return ResponseEntity.ok().build();
         }
     }
 
+    @Transactional
     @RequestMapping(
-            path = "{project}/{service}/{metrics}/{metricsProviderService}",
+            path = "{project}/{service}/{metrics}/{metricName}",
             method = RequestMethod.DELETE
-    )
-    public ResponseEntity<Void> deleteConfiguration(
-            @PathVariable(value = "project") String project,
-            @PathVariable(value = "service") String service,
-            @PathVariable(value = "metrics") Metrics metrics,
-            @PathVariable(value = "metricsProviderService") String metricsProviderService
-    ) {
-        List<Configuration> configurations = configurationRepository.findByProjectAndTargetServiceAndMetricsAndMetricsProviderService(project, service, metrics, metricsProviderService);
+            )
+            public ResponseEntity<Void> deleteConfiguration(
+                    @PathVariable(value = "project") String project,
+                    @PathVariable(value = "service") String service,
+                    @PathVariable(value = "metrics") Metrics metrics
+            ) {
+        List<Configuration> configurations = configurationRepository.findByProjectAndServiceAndMetrics(project, service, metrics);
         if (configurations.size() == 0) {
             return ResponseEntity.status(HttpStatus.GONE).build();
         }
@@ -80,19 +93,19 @@ public class ConfigurationApi {
 
     private List<Configuration> findConfigurations(String project, String service, ConfigurationRequestBody requestBody) {
         Metrics metrics = requestBody.metrics;
-        String metricsProviderService = requestBody.metricsProviderService;
-        List<Configuration> configurations = configurationRepository.findByProjectAndTargetServiceAndMetricsAndMetricsProviderService(project, service, metrics, metricsProviderService);
+        String metricName = requestBody.metricName;
+        List<Configuration> configurations = configurationRepository.findByProjectAndServiceAndMetricsAndMetricName(project, service, metrics, metricName);
         if (configurations.size() > 1)
-            System.out.println("Uuups, Configuration exists more than once: " + project + "|" + service + "|" + requestBody);
+            LOG.info("Uuups, Configuration exists more than once: {} | {} | {}", project, service, requestBody);
         return configurations;
     }
 
     private Configuration newConfigurationFor(String project, String service, ConfigurationRequestBody requestBody) {
         Configuration configuration = new Configuration();
         configuration.setProject(project);
-        configuration.setTargetService(service);
+        configuration.setService(service);
         configuration.setMetrics(requestBody.metrics);
-        configuration.setMetricsProviderService(requestBody.metricsProviderService);
+        configuration.setMetricName(requestBody.metricName);
         configuration.setScaleUp(requestBody.scaleUp);
         configuration.setScaleDown(requestBody.scaleDown);
         return configuration;

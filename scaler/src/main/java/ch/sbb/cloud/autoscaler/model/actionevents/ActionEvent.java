@@ -8,5 +8,7 @@ public class ActionEvent {
     public String project;
     public String service;
     public Scale scale;
+    public Long minReplicas;
+    public Long maxReplicas;
 
 }

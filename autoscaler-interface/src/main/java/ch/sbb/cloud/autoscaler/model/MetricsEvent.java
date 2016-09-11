@@ -7,11 +7,13 @@ import java.io.Serializable;
  */
 public class MetricsEvent implements Serializable {
 
-    private final String project;
-    private final String service;
-    private final Metrics metrics;
-    private final String metricName;
-    private final Long value;
+    private String project;
+    private String service;
+    private Metrics metrics;
+    private String metricName;
+    private Long value;
+
+    public MetricsEvent() { /* Required for JSON de-serialization */  }
 
     public MetricsEvent(String project, String service, Metrics metrics, String metricName, Long value) {
         this.project = project;
@@ -29,7 +31,7 @@ public class MetricsEvent implements Serializable {
      * @return The uniqe identifier of the Metrics-Event as String. It is meant to be the unique identifier for grouping and scaling.
      */
     public String composedUniqueId() {
-        return project + "|" + service + "|" + metrics.name();
+        return project + "|" + service + "|" + metrics + "|" + metricName;
     }
 
     public String getService() {
@@ -46,6 +48,26 @@ public class MetricsEvent implements Serializable {
 
     public String getMetricName() {
         return metricName;
+    }
+
+    public void setProject(String project) {
+        this.project = project;
+    }
+
+    public void setService(String service) {
+        this.service = service;
+    }
+
+    public void setMetrics(Metrics metrics) {
+        this.metrics = metrics;
+    }
+
+    public void setMetricName(String metricName) {
+        this.metricName = metricName;
+    }
+
+    public void setValue(Long value) {
+        this.value = value;
     }
 
     @Override

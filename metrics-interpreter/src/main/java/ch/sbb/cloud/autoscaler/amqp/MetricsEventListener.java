@@ -24,8 +24,13 @@ public class MetricsEventListener {
 
     @RabbitListener(queues = "metrics-event-queue")
     public void receive(String json) {
+
         try {
             MetricsEvent metricsEvent = parse(json);
+
+            LOG.info("Received metrics event with unique id: {}, value: {}",
+                    metricsEvent.composedUniqueId(), metricsEvent.getValue());
+
             metricsEventService.postNewEvent(metricsEvent);
         } catch (IOException e) {
             LOG.error("Error during parsing of the input-message: " + json, e);
