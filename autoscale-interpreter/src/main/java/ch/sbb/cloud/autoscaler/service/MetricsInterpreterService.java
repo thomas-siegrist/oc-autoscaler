@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -30,12 +31,12 @@ public class MetricsInterpreterService {
 
     private static final Logger LOG = LoggerFactory.getLogger(MetricsInterpreterService.class);
 
-    private static final long SCALE_UP_DELAY_IN_SECONDS = 20;
+    private static final long SCALE_UP_DELAY_IN_SECONDS = 10;
+
     private static final long SCALE_DOWN_DELAY_IN_SECONDS = 60;
 
-    public static final String HZ_METRICS_MAP = "Metrics";
-    public static final String HZ_LAST_SCALED_UP_MAP = "Last-Scaled-up";
-    public static final String HZ_LAST_SCALED_DOWN_MAP = "Last-Scaled-down";
+    private static final String HZ_METRICS_MAP = "Metrics";
+    private static final String HZ_LAST_SCALE_MAP = "Last-Scale";
 
     @Autowired
     private HazelcastInstance hz;
@@ -86,10 +87,8 @@ public class MetricsInterpreterService {
 
         Long value = calculateValue(metricsEvent);
         if (value >= configuration.getScaleUp()) {
-            LOG.info("Scaling up service {}", metricsEvent.getService());
             scaleUp(metricsEvent, configuration);
         } else if (value <= configuration.getScaleDown()) {
-            LOG.info("Scaling down service {}", metricsEvent.getService());
             scaleDown(metricsEvent, configuration);
         } else {
             LOG.info("No scaling required for service {}", metricsEvent.getService());
@@ -120,40 +119,45 @@ public class MetricsInterpreterService {
 
     private void scaleUp(MetricsEvent metricsEvent, Configuration configuration) {
         if (isUpscalingAllowed(metricsEvent)) {
+            LOG.info("Scaling up service {}", metricsEvent.getService());
             send(actionEventFor(configuration, Scale.UP));
-            hz
-                    .getMap(HZ_LAST_SCALED_UP_MAP)
-                    .put(
-                            metricsEvent.composedUniqueId(),
-                            LocalDateTime.now()
-                    );
+            setLastScaleTimeToNow(metricsEvent);
         }
-    }
-
-    private boolean isUpscalingAllowed(MetricsEvent metricsEvent) {
-        LocalDateTime lastUpScaling = (LocalDateTime) hz
-                .getMap(HZ_LAST_SCALED_UP_MAP)
-                .get(metricsEvent.composedUniqueId());
-        return lastUpScaling == null || lastUpScaling.isBefore(LocalDateTime.now().minusSeconds(SCALE_UP_DELAY_IN_SECONDS));
     }
 
     private void scaleDown(MetricsEvent metricsEvent, Configuration configuration) {
         if (isDownscalingAllowed(metricsEvent)) {
+            LOG.info("Scaling down service {}", metricsEvent.getService());
             send(actionEventFor(configuration, Scale.DOWN));
-            hz
-                    .getMap(HZ_LAST_SCALED_DOWN_MAP)
-                    .put(
-                            metricsEvent.composedUniqueId(),
-                            LocalDateTime.now()
-                    );
+            setLastScaleTimeToNow(metricsEvent);
         }
     }
 
+    private boolean isUpscalingAllowed(MetricsEvent metricsEvent) {
+        return getLastScaleDateTime(metricsEvent)
+                .orElse(LocalDateTime.MIN)
+                .isBefore(LocalDateTime.now().minusSeconds(SCALE_UP_DELAY_IN_SECONDS));
+    }
+
     private boolean isDownscalingAllowed(MetricsEvent metricsEvent) {
-        LocalDateTime lastDownScaling = (LocalDateTime) hz
-                .getMap(HZ_LAST_SCALED_DOWN_MAP)
-                .get(metricsEvent.composedUniqueId());
-        return lastDownScaling == null || lastDownScaling.isBefore(LocalDateTime.now().minusSeconds(SCALE_DOWN_DELAY_IN_SECONDS));
+        return getLastScaleDateTime(metricsEvent)
+                .orElse(LocalDateTime.MIN)
+                .isBefore(LocalDateTime.now().minusSeconds(SCALE_DOWN_DELAY_IN_SECONDS));
+    }
+
+    private Optional<LocalDateTime> getLastScaleDateTime(MetricsEvent metricsEvent) {
+        return Optional.ofNullable((LocalDateTime) hz
+                .getMap(HZ_LAST_SCALE_MAP)
+                .get(metricsEvent.composedUniqueId()));
+    }
+
+    private void setLastScaleTimeToNow(MetricsEvent metricsEvent) {
+        hz
+                .getMap(HZ_LAST_SCALE_MAP)
+                .put(
+                        metricsEvent.composedUniqueId(),
+                        LocalDateTime.now()
+                );
     }
 
     private Configuration searchForMatchingConfiguration(MetricsEvent metricsEvent) {
