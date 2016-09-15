@@ -34,6 +34,8 @@ public class MetricsEventListener {
             metricsEventService.postNewEvent(metricsEvent);
         } catch (IOException e) {
             LOG.error("Error during parsing of the input-message: " + json, e);
+        } catch (Throwable t) {
+            LOG.error(t.getMessage() + "{} - {}", json, t.getCause());
         }
     }
 
