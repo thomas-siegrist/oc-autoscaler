@@ -31,7 +31,7 @@ class ActionEventListener {
         } catch (IOException e) {
             LOG.error("Error during parsing of the input-message: " + json, e);
         } catch (Throwable t) {
-            LOG.error(t.getMessage());
+            LOG.error(t.getMessage(), json);
         }
     }
 
