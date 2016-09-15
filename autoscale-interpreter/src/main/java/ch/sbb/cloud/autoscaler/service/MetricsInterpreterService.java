@@ -1,11 +1,11 @@
 package ch.sbb.cloud.autoscaler.service;
 
-import ch.sbb.cloud.autoscaler.model.Configuration;
+import ch.sbb.cloud.autoscaler.model.AutoscaleConfiguration;
 import ch.sbb.cloud.autoscaler.model.MetricsEvent;
 import ch.sbb.cloud.autoscaler.model.ServiceLimit;
 import ch.sbb.cloud.autoscaler.model.actionevents.ActionEvent;
 import ch.sbb.cloud.autoscaler.model.actionevents.Scale;
-import ch.sbb.cloud.autoscaler.repository.ConfigurationRepository;
+import ch.sbb.cloud.autoscaler.repository.AutoscaleConfigurationRepository;
 import ch.sbb.cloud.autoscaler.repository.ServiceLimitRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,7 +48,7 @@ public class MetricsInterpreterService {
     private RabbitTemplate template;
 
     @Autowired
-    private ConfigurationRepository configurationRepository;
+    private AutoscaleConfigurationRepository autoscaleConfigurationRepository;
 
     @Autowired
     private ServiceLimitRepository serviceLimitRepository;
@@ -79,17 +79,17 @@ public class MetricsInterpreterService {
     }
 
     private void interpretEvent(MetricsEvent metricsEvent) {
-        Configuration configuration = searchForMatchingConfiguration(metricsEvent);
-        if (configuration == null) {
-            LOG.warn("No metrics configuration found for {}", metricsEvent.composedUniqueId());
+        AutoscaleConfiguration autoscaleConfiguration = searchForMatchingConfiguration(metricsEvent);
+        if (autoscaleConfiguration == null) {
+            LOG.warn("No metrics autoscaleConfiguration found for {}", metricsEvent.composedUniqueId());
             return; // No Config => No Action
         }
 
         Long value = calculateValue(metricsEvent);
-        if (value >= configuration.getScaleUp()) {
-            scaleUp(metricsEvent, configuration);
-        } else if (value <= configuration.getScaleDown()) {
-            scaleDown(metricsEvent, configuration);
+        if (value >= autoscaleConfiguration.getScaleUp()) {
+            scaleUp(metricsEvent, autoscaleConfiguration);
+        } else if (value <= autoscaleConfiguration.getScaleDown()) {
+            scaleDown(metricsEvent, autoscaleConfiguration);
         } else {
             LOG.info("No scaling required for service {}", metricsEvent.getService());
         }
@@ -117,18 +117,18 @@ public class MetricsInterpreterService {
                 .longValue();
     }
 
-    private void scaleUp(MetricsEvent metricsEvent, Configuration configuration) {
+    private void scaleUp(MetricsEvent metricsEvent, AutoscaleConfiguration autoscaleConfiguration) {
         if (isUpscalingAllowed(metricsEvent)) {
             LOG.info("Scaling up service {}", metricsEvent.getService());
-            send(actionEventFor(configuration, Scale.UP));
+            send(actionEventFor(autoscaleConfiguration, Scale.UP));
             setLastScaleTimeToNow(metricsEvent);
         }
     }
 
-    private void scaleDown(MetricsEvent metricsEvent, Configuration configuration) {
+    private void scaleDown(MetricsEvent metricsEvent, AutoscaleConfiguration autoscaleConfiguration) {
         if (isDownscalingAllowed(metricsEvent)) {
             LOG.info("Scaling down service {}", metricsEvent.getService());
-            send(actionEventFor(configuration, Scale.DOWN));
+            send(actionEventFor(autoscaleConfiguration, Scale.DOWN));
             setLastScaleTimeToNow(metricsEvent);
         }
     }
@@ -160,24 +160,24 @@ public class MetricsInterpreterService {
                 );
     }
 
-    private Configuration searchForMatchingConfiguration(MetricsEvent metricsEvent) {
-        List<Configuration> configurations = configurationRepository.findByProjectAndServiceAndMetricsAndMetricName(
+    private AutoscaleConfiguration searchForMatchingConfiguration(MetricsEvent metricsEvent) {
+        List<AutoscaleConfiguration> autoscaleConfigurations = autoscaleConfigurationRepository.findByProjectAndServiceAndMetricsAndMetricName(
                 metricsEvent.getProject(),
                 metricsEvent.getService(),
                 metricsEvent.getMetrics(),
                 metricsEvent.getMetricName()
         );
 
-        if (configurations.size() > 0) {
-            return configurations.get(0);
+        if (autoscaleConfigurations.size() > 0) {
+            return autoscaleConfigurations.get(0);
         }
         return null;
     }
 
-    private ActionEvent actionEventFor(Configuration configuration, Scale scale) {
+    private ActionEvent actionEventFor(AutoscaleConfiguration autoscaleConfiguration, Scale scale) {
 
-        String project = configuration.getProject();
-        String service = configuration.getService();
+        String project = autoscaleConfiguration.getProject();
+        String service = autoscaleConfiguration.getService();
 
         ActionEvent actionEvent = new ActionEvent();
         actionEvent.setProject(project);

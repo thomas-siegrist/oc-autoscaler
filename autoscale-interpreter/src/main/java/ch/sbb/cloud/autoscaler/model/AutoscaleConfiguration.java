@@ -1,19 +1,19 @@
 package ch.sbb.cloud.autoscaler.model;
 
 
-import java.io.Serializable;
-
 import javax.persistence.*;
+import java.io.Serializable;
 
 /**
  * Created by thomas on 01.09.16.
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(
-        name = "domainkey",
-        columnNames = {"project", "service", "metrics", "metric_name"}
-))
-public class Configuration implements Serializable {
+@Table(name = "autoscale_configuration",
+        uniqueConstraints = @UniqueConstraint(
+                name = "autoscale_configuration_domainkey",
+                columnNames = {"project", "service", "metrics", "metric_name"}
+        ))
+public class AutoscaleConfiguration implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

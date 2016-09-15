@@ -29,8 +29,8 @@ public class ServiceLimitsApi {
             path = "",
             produces = "application/json",
             method = RequestMethod.GET
-            )
-            public List<ServiceLimit> getServiceLimits() {
+    )
+    public List<ServiceLimit> getServiceLimits() {
 
         return (List<ServiceLimit>) serviceLimitsRepository.findAll();
     }
@@ -40,12 +40,12 @@ public class ServiceLimitsApi {
             path = "{project}/{service}",
             consumes = "application/json",
             method = RequestMethod.POST
-            )
-            public ResponseEntity<Void> createServiceLimit(
-                    @PathVariable(value = "project") String project,
-                    @PathVariable(value = "service") String service,
-                    @RequestBody ServiceLimitRequestBody requestBody
-            ) {
+    )
+    public ResponseEntity<Void> createServiceLimit(
+            @PathVariable(value = "project") String project,
+            @PathVariable(value = "service") String service,
+            @RequestBody ServiceLimitRequestBody requestBody
+    ) {
 
         List<ServiceLimit> limits = findServiceLimits(project, service);
         if (limits.size() == 0) {
@@ -64,23 +64,23 @@ public class ServiceLimitsApi {
     @RequestMapping(
             path = "{project}/{service}",
             method = RequestMethod.DELETE
-            )
-            public ResponseEntity<Void> deleteServiceLimit(
-                    @PathVariable(value = "project") String project,
-                    @PathVariable(value = "service") String service
-            ) {
+    )
+    public ResponseEntity<String> deleteServiceLimit(
+            @PathVariable(value = "project") String project,
+            @PathVariable(value = "service") String service
+    ) {
         List<ServiceLimit> limits = serviceLimitsRepository.findByProjectAndService(project, service);
         if (limits.size() == 0) {
-            return ResponseEntity.status(HttpStatus.GONE).build();
+            return ResponseEntity.status(HttpStatus.GONE).body("Object not found!");
         }
         serviceLimitsRepository.delete(limits.get(0));
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body("Successfully deleted!");
     }
 
     private List<ServiceLimit> findServiceLimits(String project, String service) {
         List<ServiceLimit> configurations = serviceLimitsRepository.findByProjectAndService(project, service);
         if (configurations.size() > 1)
-            LOG.info("Uuups, Configuration exists more than once: {} | {} | {}", project, service);
+            LOG.info("Uuups, ServiceLimit exists more than once: {} | {} | {}", project, service);
         return configurations;
     }
 
