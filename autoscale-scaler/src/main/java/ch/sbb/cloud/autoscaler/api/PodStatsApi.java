@@ -33,7 +33,7 @@ public class PodStatsApi {
     public List<PodStatistic> getMetricsStats() {
         List<PodStatistic> podStatistics = new ArrayList<>();
 
-        List<String> projects = openShiftClient
+        /*List<String> projects = openShiftClient
                 .inAnyNamespace()
                 .namespaces()
                 .list()
@@ -42,22 +42,23 @@ public class PodStatsApi {
                 .map(namespace -> namespace.getMetadata().getName())
                 .collect(Collectors.toList());
 
-        for (String project : projects) {
-            List<String> services = openShiftClient
-                    .inNamespace(project)
-                    .services()
-                    .list()
-                    .getItems()
-                    .stream()
-                    .map(namespace -> namespace.getMetadata().getName())
-                    .collect(Collectors.toList());
+        for (String project : projects) {*/
+        String project = "usecase";
+        List<String> services = openShiftClient
+                .inNamespace(project)
+                .services()
+                .list()
+                .getItems()
+                .stream()
+                .map(namespace -> namespace.getMetadata().getName())
+                .collect(Collectors.toList());
 
-            for (String service : services) {
-                int podCount = getPodsForService(service, project);
-                podStatistics.add(createPodStatistic(project, service, podCount));
-            }
-
+        for (String service : services) {
+            int podCount = getPodsForService(service, project);
+            podStatistics.add(createPodStatistic(project, service, podCount));
         }
+
+        //}
 
         return podStatistics;
     }
