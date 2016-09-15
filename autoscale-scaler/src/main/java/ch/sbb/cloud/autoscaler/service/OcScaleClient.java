@@ -6,6 +6,7 @@ import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,26 +20,8 @@ public class OcScaleClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(OcScaleClient.class);
 
-    @Value("${openshift.master}")
-    private String master;
-
-    @Value("${openshift.user}")
-    private String user;
-
-    @Value("${openshift.password}")
-    private String password;
-
+    @Autowired
     private NamespacedOpenShiftClient openShiftClient;
-
-    @PostConstruct
-    public void init() {
-
-        Config kubeConfig = new Config();
-        kubeConfig.setUsername(user);
-        kubeConfig.setPassword(password);
-        kubeConfig.setMasterUrl(master);
-        openShiftClient = new DefaultOpenShiftClient(kubeConfig);
-    }
 
     public void scale(ActionEvent actionEvent) {
 
