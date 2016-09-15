@@ -27,9 +27,9 @@ public class MetricsInterpreterService {
 
     private static final Logger LOG = LoggerFactory.getLogger(MetricsInterpreterService.class);
 
-    private static final long SCALE_UP_DELAY_IN_SECONDS = 10;
+    private static final long SCALE_UP_DELAY_IN_SECONDS = 30;
 
-    private static final long SCALE_DOWN_DELAY_IN_SECONDS = 60;
+    private static final long SCALE_DOWN_DELAY_IN_SECONDS = 30;
 
     @Autowired
     private RabbitTemplate template;
