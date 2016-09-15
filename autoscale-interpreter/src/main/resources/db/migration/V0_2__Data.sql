@@ -11,3 +11,9 @@ VALUES (2, 'usecase', 'frontendservice', 'NUMBER_OF_HTTP_CONNECTIONS', '', 20, 1
 -- Service-Limits:
 INSERT INTO service_limit (id, project, service, min_pods, max_pods)
 VALUES (0, 'usecase', 'frontendservice', 1, 5);
+
+INSERT INTO service_limit (id, project, service, min_pods, max_pods)
+VALUES (1, 'usecase', 'printservice', 1, 3);
+
+INSERT INTO service_limit (id, project, service, min_pods, max_pods)
+VALUES (2, 'usecase', 'emailservice', 1, 3);
