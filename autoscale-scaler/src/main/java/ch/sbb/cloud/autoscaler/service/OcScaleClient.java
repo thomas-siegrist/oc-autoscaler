@@ -1,8 +1,6 @@
 package ch.sbb.cloud.autoscaler.service;
 
 import ch.sbb.cloud.autoscaler.model.actionevents.ActionEvent;
-import ch.sbb.cloud.autoscaler.model.actionevents.Scale;
-
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
@@ -44,12 +42,10 @@ public class OcScaleClient {
 
     public void scale(ActionEvent actionEvent) {
 
-        Long minReplicas = actionEvent.minReplicas;
-        Long maxReplicas = actionEvent.maxReplicas;
         Integer currentReplicas = getReplicasForService(actionEvent.project, actionEvent.service);
+        long newNumberOfReplicas = newNumberOfReplicas(actionEvent, currentReplicas);
 
-        int newNumberOfReplicas = newNumberOfReplicas(actionEvent.scale, currentReplicas);
-        if (newNumberOfReplicas >= minReplicas && newNumberOfReplicas <= maxReplicas) {
+        if (newNumberOfReplicas != currentReplicas) {
             LOG.info("Scaling {}:{} to {}", actionEvent.project, actionEvent.service, newNumberOfReplicas);
             setReplicasForService(actionEvent.project, actionEvent.service, newNumberOfReplicas);
         } else {
@@ -58,8 +54,8 @@ public class OcScaleClient {
                     actionEvent.project,
                     actionEvent.service,
                     currentReplicas,
-                    minReplicas,
-                    maxReplicas
+                    actionEvent.minReplicas,
+                    actionEvent.maxReplicas
             );
         }
     }
@@ -73,25 +69,37 @@ public class OcScaleClient {
                 .getSpec().getReplicas();
     }
 
-    private void setReplicasForService(String project, String service, int replicas) {
+    private void setReplicasForService(String project, String service, Long replicas) {
         openShiftClient
                 .inNamespace(project)
                 .deploymentConfigs()
                 .withName(service)
                 .edit()
                 .editSpec()
-                .withReplicas(replicas)
+                .withReplicas(replicas.intValue())
                 .endSpec()
                 .done();
     }
 
-    private int newNumberOfReplicas(Scale scale, Integer currentReplicas) {
-        switch (scale) {
+    private long newNumberOfReplicas(ActionEvent actionEvent, Integer currentReplicas) {
+        long newNumberOfReplicas;
+        switch (actionEvent.scale) {
             case UP:
-                return ++currentReplicas;
+                newNumberOfReplicas = ++currentReplicas;
+                break;
             case DOWN:
-                return --currentReplicas;
+                newNumberOfReplicas = --currentReplicas;
+                break;
+            default:
+                newNumberOfReplicas = currentReplicas;
         }
-        return currentReplicas;
+
+        if (newNumberOfReplicas > actionEvent.maxReplicas)
+            newNumberOfReplicas = actionEvent.maxReplicas;
+
+        if (newNumberOfReplicas < actionEvent.minReplicas)
+            newNumberOfReplicas = actionEvent.minReplicas;
+
+        return newNumberOfReplicas;
     }
 }
