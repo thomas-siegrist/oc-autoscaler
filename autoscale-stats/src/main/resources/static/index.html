@@ -1,114 +1,39 @@
-<!DOCTYPE html>
-<meta charset="utf-8">
-<style> /* set the CSS */
+<html>
+<head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(load_page_data);
 
-body { font: 12px Arial;}
+        function load_page_data(){
+            $.ajax({
+                url: '/api/data/usecase/frontendservice/NUMBER_OF_HTTP_CONNECTIONS',
+                async: false,
+                success: function(data){
+                    if(data){
+                        drawChart(data, "Metircs Chart", "Value");
+                    }
+                },
+            });
+        }
 
-path {
-    stroke: steelblue;
-    stroke-width: 2;
-    fill: none;
-}
+        function drawChart(chart_data, chart1_main_title, chart1_vaxis_title) {
+            var chart1_data = new google.visualization.DataTable(chart_data);
+            var chart1_options = {
+                title: chart1_main_title,
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                vAxis: {title: chart1_vaxis_title}
+            };
 
-.axis path,
-.axis line {
-    fill: none;
-    stroke: grey;
-    stroke-width: 1;
-    shape-rendering: crispEdges;
-}
+            var chart1_chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+            chart1_chart.draw(chart1_data, chart1_options);
+        }
 
-</style>
+    </script>
+</head>
 <body>
-
-
-<div id="option">
-    <input name="updateButton"
-           type="button"
-           value="Update"
-           onclick="updateData()" />
-</div>
-
-<!-- load the d3.js library -->
-<script src="/d3.v3.min.js"></script>
-
-<script>
-
-// Set the dimensions of the canvas / graph
-var margin = {top: 30, right: 20, bottom: 30, left: 50},
-    width = 600 - margin.left - margin.right,
-    height = 270 - margin.top - margin.bottom;
-
-// Parse the date / time
-var parseTime = d3.time.format("%H:%M:%S").parse;
-
-// Get the data
-function updateData() {
-
-    d3.select("svg").remove();
-
-    // Set the ranges
-    var x = d3.time.scale().range([0, width]);
-    var y = d3.scale.linear().range([height, 0]);
-
-    // Define the axes
-    var xAxis = d3.svg.axis().scale(x)
-        .orient("bottom").ticks(5);
-
-    var yAxis = d3.svg.axis().scale(y)
-        .orient("left").ticks(5);
-
-    // Define the line
-    var valueline = d3.svg.line()
-        .x(function(d) { return x(d.time); })
-        .y(function(d) { return y(d.pods); });
-
-    // Adds the svg canvas
-    var svg = d3.select("body")
-        .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-            .attr("transform",
-                  "translate(" + margin.left + "," + margin.top + ")");
-
-    d3.csv("/api/data", function(error, data) {
-        data.forEach(function(d) {
-            d.time = parseTime(d.time);
-            d.pods = +d.pods;
-        });
-
-        // Scale the range of the data
-        x.domain(d3.extent(data, function(d) { return d.time; }));
-        y.domain([0, d3.max(data, function(d) { return d.pods; })]);
-
-        // Add the valueline path.
-        svg.append("path")
-            .attr("class", "line")
-            .attr("d", valueline(data));
-
-        // Add the X Axis
-        svg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + height + ")")
-            .call(xAxis);
-
-        // Add the Y Axis
-        svg.append("g")
-            .attr("class", "y axis")
-            .call(yAxis);
-
-    });
-}
-
-var inter = setInterval(function() {
-            updateData();
-    }, 2500);
-
-updateData();
-
-</script>
-
+<div id="curve_chart" style="width: 550px; height: 350px"></div>
 </body>
-
-
+</html>

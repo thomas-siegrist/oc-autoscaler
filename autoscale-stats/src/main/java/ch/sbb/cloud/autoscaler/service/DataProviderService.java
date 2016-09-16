@@ -1,11 +1,13 @@
 package ch.sbb.cloud.autoscaler.service;
 
-import ch.sbb.cloud.autoscaler.model.Metrics;
-import ch.sbb.cloud.autoscaler.model.MetricsStatistic;
+import ch.sbb.cloud.autoscaler.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -19,23 +21,46 @@ public class DataProviderService {
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    @RequestMapping("/api/data")
-    public String data() {
+    private ChartColDef dateTimeCol = new ChartColDef();
+    private ChartColDef metricCol = new ChartColDef();
 
-        final StringBuffer ret = new StringBuffer("time,pods\n");
+    @PostConstruct
+    public void init() {
+
+        dateTimeCol.label = "DateTime";
+        dateTimeCol.type = ChartColDefType.string;
+
+    }
+
+    @RequestMapping(
+            value = "/api/data/{project}/{service}/{metric}",
+            method = RequestMethod.GET)
+    public ChartData data(
+            @PathVariable("project") String project,
+            @PathVariable("service") String service,
+            @PathVariable("metric") Metrics metric) {
+
+        metricCol.label = service;
+        metricCol.type = ChartColDefType.number;
+
+        final ChartData data = new ChartData();
+        data.cols.add(dateTimeCol);
+        data.cols.add(metricCol);
 
         metricsCollector.getMetricsStatisticSnapshots().forEach(s -> {
             MetricsStatistic stat = s.getMetricsStatistic();
-            if (stat.getService().equals("frontendservice")
-                    && stat.getMetrics().equals(Metrics.NUMBER_OF_HTTP_CONNECTIONS)) {
-                ret
-                        .append(formatter.format(s.getTime()))
-                        .append(",")
-                        .append(stat.getCurrentValue())
-                        .append("\n");
+            if (stat.getService().equals(service)
+                    && stat.getProject().equals(project)
+                    && stat.getMetrics().equals(metric)) {
+
+                data.rows.add(
+                        new ChartRow()
+                                .addContentEntry(new ChartRowContentString(formatter.format(s.getTime())))
+                                .addContentEntry(new ChartRowContentNumber(stat.getCurrentValue()))
+                );
             }
         });
 
-        return ret.toString();
+        return data;
     }
 }
