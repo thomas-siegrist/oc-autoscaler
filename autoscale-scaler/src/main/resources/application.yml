@@ -15,3 +15,5 @@ openshift:
   user: developer
   password: developer
   master: https://localhost:8443
+influxdbhost: localhost
+influxdbport: 8086

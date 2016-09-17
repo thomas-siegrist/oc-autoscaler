@@ -6,3 +6,5 @@ spring:
     password: guest
 openshift:
   master: https://openshift.default.svc.cluster.local
+influxdbhost: influxdb
+influxdbport: 8086

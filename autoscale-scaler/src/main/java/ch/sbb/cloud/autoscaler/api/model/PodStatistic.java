@@ -17,6 +17,10 @@ public class PodStatistic implements Serializable {
         this.podCount = podCount;
     }
 
+    public String compositeUniqueId() {
+        return project + "|" + service;
+    }
+
     public static PodStatisticBuilder builder() {
         return new PodStatisticBuilder();
     }
