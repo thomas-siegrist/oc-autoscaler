@@ -1,19 +1,18 @@
 package ch.sbb.cloud.autoscaler.service;
 
 import ch.sbb.cloud.autoscaler.model.*;
-import com.hazelcast.config.MultiMapConfig;
-import com.hazelcast.core.HazelcastInstance;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,10 +22,6 @@ import java.util.stream.Collectors;
  */
 @Component
 class MetricsCollectorService {
-
-    private static final String HZ_METRICS_STATS_MAP = "METRICS_STATS_SNAPSHOT_MAP";
-
-    private static final String HZ_PODS_STATS_MAP = "PODS_STATS_SNAPSHOT_MAP";
 
     private static final Logger LOG = LoggerFactory.getLogger(MetricsCollectorService.class);
 
@@ -40,34 +35,19 @@ class MetricsCollectorService {
     @Value("${autoscale-scaler.url}")
     private String autoscaleScalerUrl;
 
-    @Autowired
-    private HazelcastInstance hz;
+    private static Cache<String, MetricsStatisticSnapshot> metricsStatisticCache =
+            CacheBuilder
+                    .newBuilder()
+                    .build();
+
+    private static Cache<String, PodStatisticSnapshot> podsStatisticCache =
+            CacheBuilder
+                    .newBuilder()
+                    .build();
 
     private Comparator<StatisticSnapshot> statisticSnapshotComparator = Comparator.comparing(
             StatisticSnapshot::getTime
     );
-
-    @PostConstruct
-    public void init() {
-
-        MultiMapConfig multiMapConfigMetrics = new MultiMapConfig();
-        multiMapConfigMetrics
-                .setName(HZ_METRICS_STATS_MAP)
-                .setBackupCount(0)
-                .setAsyncBackupCount(1)
-                .setValueCollectionType(MultiMapConfig.ValueCollectionType.LIST);
-        hz.getConfig().addMultiMapConfig(multiMapConfigMetrics);
-        hz.getMultiMap(HZ_METRICS_STATS_MAP).clear();
-
-        MultiMapConfig multiMapConfigPods = new MultiMapConfig();
-        multiMapConfigPods
-                .setName(HZ_PODS_STATS_MAP)
-                .setBackupCount(0)
-                .setAsyncBackupCount(1)
-                .setValueCollectionType(MultiMapConfig.ValueCollectionType.LIST);
-        hz.getConfig().addMultiMapConfig(multiMapConfigPods);
-        hz.getMultiMap(HZ_PODS_STATS_MAP).clear();
-    }
 
     @Scheduled(fixedRate = 10000)
     public void collectMetrics() {
@@ -97,9 +77,8 @@ class MetricsCollectorService {
                 PodStatisticSnapshot snap = new PodStatisticSnapshot();
                 snap.setTime(LocalDateTime.now());
                 snap.setPodStatistic(podStat);
-                hz
-                        .getMultiMap(HZ_PODS_STATS_MAP)
-                        .put(podStat.composedUniqueId(), snap);
+
+                podsStatisticCache.put(podStat.composedUniqueId() + snap.getTime(), snap);
             }
         }
     }
@@ -126,29 +105,26 @@ class MetricsCollectorService {
                 MetricsStatisticSnapshot snap = new MetricsStatisticSnapshot();
                 snap.setTime(LocalDateTime.now());
                 snap.setMetricsStatistic(metricStat);
-                hz
-                        .getMultiMap(HZ_METRICS_STATS_MAP)
-                        .put(metricStat.composedUniqueId(), snap);
+
+                metricsStatisticCache.put(metricStat.composedUniqueId() + snap.getTime(), snap);
             }
         }
     }
 
     List<MetricsStatisticSnapshot> getMetricsStatisticSnapshots() {
-        return hz
-                .getMultiMap(HZ_METRICS_STATS_MAP)
+        return metricsStatisticCache
+                .asMap()
                 .values()
                 .stream()
-                .map(s -> (MetricsStatisticSnapshot)s)
                 .sorted((a, b) -> statisticSnapshotComparator.compare(a, b))
                 .collect(Collectors.toList());
     }
 
     List<PodStatisticSnapshot> getPodsStatisticSnapshots() {
-        return hz
-                .getMultiMap(HZ_PODS_STATS_MAP)
+        return podsStatisticCache
+                .asMap()
                 .values()
                 .stream()
-                .map(s -> (PodStatisticSnapshot)s)
                 .sorted((a, b) -> statisticSnapshotComparator.compare(a, b))
                 .collect(Collectors.toList());
     }

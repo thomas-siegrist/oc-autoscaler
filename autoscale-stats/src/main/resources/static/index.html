@@ -12,7 +12,7 @@
                 async: false,
                 success: function(data){
                     if(data){
-                        drawChart(data, "Metircs Chart", "Value", "metrics_chart", "#0066ff");
+                        drawChart(data, "Metircs Chart [NUMBER_OF_HTTP_CONNECTIONS]", "Value", "metrics_chart", "#0066ff");
                     }
                 },
             });
@@ -22,7 +22,7 @@
                 async: false,
                 success: function(data){
                     if(data){
-                        drawChart(data, "PODs Chart", "Value", "pods_chart", "#e2431e");
+                        drawChart(data, "PODs Chart [frontendservice]", "Value", "pods_chart", "#e2431e");
                     }
                 },
             });
@@ -47,10 +47,12 @@
             lineChart.draw(chartDataTable, chartOptions);
         }
 
+        setInterval(load_page_data, 3000);
+
     </script>
 </head>
 <body>
-<div id="metrics_chart" style="width: 550px; height: 350px; float: right"></div>
-<div id="pods_chart" style="width: 550px; height: 350px"></div>
+<div id="pods_chart" style="width: 550px; height: 350px; float: right"></div>
+<div id="metrics_chart" style="width: 550px; height: 350px"></div>
 </body>
 </html>

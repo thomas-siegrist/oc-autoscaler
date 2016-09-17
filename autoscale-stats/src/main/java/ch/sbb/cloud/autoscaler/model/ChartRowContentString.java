@@ -14,4 +14,19 @@ public class ChartRowContentString implements ChartRowContent{
     public String getV() {
         return v;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ChartRowContentString that = (ChartRowContentString) o;
+
+        return v != null ? v.equals(that.v) : that.v == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return v != null ? v.hashCode() : 0;
+    }
 }
