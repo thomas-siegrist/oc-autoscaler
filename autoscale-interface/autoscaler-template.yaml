@@ -1,0 +1,434 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: autoscaler
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: autoscale-interpreter
+    name: autoscale-interpreter
+  spec:
+    ports:
+    - name: 8091-tcp
+      port: 8091
+      protocol: TCP
+      targetPort: 8091
+    selector:
+      app: autoscale-interpreter
+      deploymentconfig: autoscale-interpreter
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: autoscale-scaler
+    name: autoscale-scaler
+  spec:
+    ports:
+    - name: 8090-tcp
+      port: 8090
+      protocol: TCP
+      targetPort: 8090
+    selector:
+      app: autoscale-scaler
+      deploymentconfig: autoscale-scaler
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: backendservice
+    name: backendservice
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: backendservice
+      deploymentconfig: backendservice
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: emailservice
+    name: emailservice
+  spec:
+    ports:
+    - name: 8083-tcp
+      port: 8083
+      protocol: TCP
+      targetPort: 8083
+    selector:
+      app: emailservice
+      deploymentconfig: emailservice
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: frontendservice
+    name: frontendservice
+  spec:
+    ports:
+    - name: 8082-tcp
+      port: 8082
+      protocol: TCP
+      targetPort: 8082
+    selector:
+      app: frontendservice
+      deploymentconfig: frontendservice
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: influxdb
+    name: influxdb
+  spec:
+    ports:
+    - name: 8083-tcp
+      port: 8083
+      protocol: TCP
+      targetPort: 8083
+    - name: 8086-tcp
+      port: 8086
+      protocol: TCP
+      targetPort: 8086
+    selector:
+      app: influxdb
+      deploymentconfig: influxdb
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: paymentservice
+    name: paymentservice
+  spec:
+    ports:
+    - name: 8081-tcp
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+    selector:
+      app: paymentservice
+      deploymentconfig: paymentservice
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: printservice
+    name: printservice
+  spec:
+    ports:
+    - name: 8084-tcp
+      port: 8084
+      protocol: TCP
+      targetPort: 8084
+    selector:
+      app: printservice
+      deploymentconfig: printservice
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: rabbitmq
+    name: rabbitmq
+  spec:
+    ports:
+    - name: 4369-tcp
+      port: 4369
+      protocol: TCP
+      targetPort: 4369
+    - name: 5671-tcp
+      port: 5671
+      protocol: TCP
+      targetPort: 5671
+    - name: 5672-tcp
+      port: 5672
+      protocol: TCP
+      targetPort: 5672
+    - name: 15671-tcp
+      port: 15671
+      protocol: TCP
+      targetPort: 15671
+    - name: 15672-tcp
+      port: 15672
+      protocol: TCP
+      targetPort: 15672
+    - name: 25672-tcp
+      port: 25672
+      protocol: TCP
+      targetPort: 25672
+    selector:
+      app: rabbitmq
+      deploymentconfig: rabbitmq
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    name: autoscale-interpreter
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/autoscale-interpreter:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    name: autoscale-scaler
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/autoscale-scaler:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    name: backendservice
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/backendservice:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    name: emailservice
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/emailservice:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    name: frontendservice
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/frontendservice:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+      openshift.io/image.dockerRepositoryCheck: 2016-09-17T12:26:59Z
+    creationTimestamp: null
+    generation: 2
+    labels:
+      app: influxdb
+    name: influxdb
+  spec:
+    tags:
+    - annotations:
+        openshift.io/imported-from: tutum/influxdb
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/influxdb:latest
+      generation: 2
+      importPolicy: {}
+      name: latest
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    name: metrics-interpreter
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/metrics-interpreter:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    name: paymentservice
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/paymentservice:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    name: printservice
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/printservice:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+      openshift.io/image.dockerRepositoryCheck: 2016-08-14T09:37:32Z
+    creationTimestamp: null
+    generation: 2
+    labels:
+      app: rabbitmq
+    name: rabbitmq
+  spec:
+    tags:
+    - annotations:
+        openshift.io/imported-from: rabbitmq:3-management
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/rabbitmq:3-management
+      generation: 2
+      importPolicy: {}
+      name: 3-management
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/rabbitmq:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    generation: 1
+    name: scaler
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: 172.30.158.20:5000/usecase/scaler:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+  status:
+    dockerImageRepository: ""
