@@ -52,6 +52,10 @@ public class MetricsInterpreterService {
     @Value("${influxdb.host}")
     private String influxDBHost;
 
+    @Autowired
+    @Value("${influxdb.port}")
+    private String influxDBPort;
+
     public void postNewEvent(MetricsEvent metricsEvent) {
 
         // Calculate the overall value only once...
@@ -66,7 +70,7 @@ public class MetricsInterpreterService {
     }
 
     private void writeToInfluxDB(MetricsEvent metricsEvent) {
-        InfluxDB influxDB = InfluxDBFactory.connect("http://" + influxDBHost + ":8086", "root", "root");
+        InfluxDB influxDB = InfluxDBFactory.connect("http://" + influxDBHost + ":" + influxDBPort, "root", "root");
 
         Point point = Point.measurement(metricsEvent.composedUniqueId())
                 .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
