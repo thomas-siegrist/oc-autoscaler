@@ -21,27 +21,16 @@ public class DataProviderService {
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    private ChartColDef dateTimeCol = new ChartColDef();
-    private ChartColDef metricCol = new ChartColDef();
-
-    @PostConstruct
-    public void init() {
-
-        dateTimeCol.label = "DateTime";
-        dateTimeCol.type = ChartColDefType.string;
-
-    }
-
     @RequestMapping(
-            value = "/api/data/{project}/{service}/{metric}",
+            value = "/api/metricsdata/{project}/{service}/{metric}",
             method = RequestMethod.GET)
-    public ChartData data(
+    public ChartData metricsData(
             @PathVariable("project") String project,
             @PathVariable("service") String service,
             @PathVariable("metric") Metrics metric) {
 
-        metricCol.label = service;
-        metricCol.type = ChartColDefType.number;
+        ChartColDef dateTimeCol = new ChartColDef(ChartColDefType.string, "DateTime");
+        ChartColDef metricCol = new ChartColDef(ChartColDefType.number, service);
 
         final ChartData data = new ChartData();
         data.cols.add(dateTimeCol);
@@ -57,6 +46,36 @@ public class DataProviderService {
                         new ChartRow()
                                 .addContentEntry(new ChartRowContentString(formatter.format(s.getTime())))
                                 .addContentEntry(new ChartRowContentNumber(stat.getCurrentValue()))
+                );
+            }
+        });
+
+        return data;
+    }
+
+    @RequestMapping(
+            value = "/api/podsdata/{project}/{service}",
+            method = RequestMethod.GET)
+    public ChartData data(
+            @PathVariable("project") String project,
+            @PathVariable("service") String service) {
+
+        ChartColDef dateTimeCol = new ChartColDef(ChartColDefType.string, "DateTime");
+        ChartColDef podCol = new ChartColDef(ChartColDefType.number, service);
+
+        final ChartData data = new ChartData();
+        data.cols.add(dateTimeCol);
+        data.cols.add(podCol);
+
+        metricsCollector.getPodsStatisticSnapshots().forEach(s -> {
+            PodStatistic stat = s.getPodStatistic();
+            if (stat.getService().equals(service)
+                    && stat.getProject().equals(project)) {
+
+                data.rows.add(
+                        new ChartRow()
+                                .addContentEntry(new ChartRowContentString(formatter.format(s.getTime())))
+                                .addContentEntry(new ChartRowContentNumber(Long.valueOf(stat.getPodCount())))
                 );
             }
         });

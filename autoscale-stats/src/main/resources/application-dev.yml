@@ -6,6 +6,6 @@ spring:
   profiles:
     active: ${STAGE:local}
 autoscale-scaler:
-  url: http://localhost:8090
+  url: http://autoscale-scaler:8090
 autoscale-interpreter:
-  url: http://localhost:8091
+  url: http://autoscale-interpreter:8091

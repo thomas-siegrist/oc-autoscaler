@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 /**
  * Created by micic on 14.09.16.
  */
-public class MetricsStatisticSnapshot implements Serializable {
+public class MetricsStatisticSnapshot implements StatisticSnapshot, Serializable {
 
     private LocalDateTime time;
     private MetricsStatistic metricsStatistic;
