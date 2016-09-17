@@ -54,7 +54,7 @@ public class PodStatsApi {
                 .collect(Collectors.toList());
 
         for (String service : services) {
-            int podCount = getPodsForService(service, project);
+            int podCount = getPodsForService(project, service);
             podStatistics.add(createPodStatistic(project, service, podCount));
         }
 
