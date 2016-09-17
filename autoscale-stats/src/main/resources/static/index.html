@@ -1,0 +1,38 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(load_page_data);
+
+        function load_page_data(){
+            $.ajax({
+                url: '/api/data/usecase/frontendservice/NUMBER_OF_HTTP_CONNECTIONS',
+                async: false,
+                success: function(data){
+                    if(data){
+                        drawChart(data, "Metircs Chart", "Value");
+                    }
+                },
+            });
+        }
+
+        function drawChart(chart_data, chart1_main_title, chart1_vaxis_title) {
+            var chart1_data = new google.visualization.DataTable(chart_data);
+            var chart1_options = {
+                title: chart1_main_title,
+                legend: { position: 'bottom' },
+                vAxis: {title: chart1_vaxis_title}
+            };
+
+            var chart1_chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+            chart1_chart.draw(chart1_data, chart1_options);
+        }
+
+    </script>
+</head>
+<body>
+<div id="curve_chart" style="width: 550px; height: 350px"></div>
+</body>
+</html>
