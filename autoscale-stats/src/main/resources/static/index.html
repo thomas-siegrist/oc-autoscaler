@@ -8,31 +8,49 @@
 
         function load_page_data(){
             $.ajax({
-                url: '/api/data/usecase/frontendservice/NUMBER_OF_HTTP_CONNECTIONS',
+                url: '/api/metricsdata/usecase/frontendservice/NUMBER_OF_HTTP_CONNECTIONS',
                 async: false,
                 success: function(data){
                     if(data){
-                        drawChart(data, "Metircs Chart", "Value");
+                        drawChart(data, "Metircs Chart", "Value", "metrics_chart", "#0066ff");
+                    }
+                },
+            });
+
+            $.ajax({
+                url: '/api/podsdata/usecase/frontendservice/',
+                async: false,
+                success: function(data){
+                    if(data){
+                        drawChart(data, "PODs Chart", "Value", "pods_chart", "#e2431e");
                     }
                 },
             });
         }
 
-        function drawChart(chart_data, chart1_main_title, chart1_vaxis_title) {
-            var chart1_data = new google.visualization.DataTable(chart_data);
-            var chart1_options = {
-                title: chart1_main_title,
-                legend: { position: 'bottom' },
-                vAxis: {title: chart1_vaxis_title}
+        function drawChart(chartData, chartTitle, chartXAxisTitle, chartTargetDiv, lineColor) {
+            var chartDataTable = new google.visualization.DataTable(chartData);
+            var chartOptions = {
+                title: chartTitle,
+                legend: {
+                    position: 'bottom'
+                    },
+                vAxis: {
+                    title: chartXAxisTitle
+                    },
+                series: {
+                    0: { color: lineColor }
+                    }
             };
 
-            var chart1_chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
-            chart1_chart.draw(chart1_data, chart1_options);
+            var lineChart = new google.visualization.LineChart(document.getElementById(chartTargetDiv));
+            lineChart.draw(chartDataTable, chartOptions);
         }
 
     </script>
 </head>
 <body>
-<div id="curve_chart" style="width: 550px; height: 350px"></div>
+<div id="metrics_chart" style="width: 550px; height: 350px; float: right"></div>
+<div id="pods_chart" style="width: 550px; height: 350px"></div>
 </body>
 </html>
