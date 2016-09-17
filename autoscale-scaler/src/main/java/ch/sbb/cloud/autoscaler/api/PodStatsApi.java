@@ -64,12 +64,17 @@ public class PodStatsApi {
     }
 
     private int getPodsForService(String project, String service) {
+        try {
         return openShiftClient
                 .inNamespace(project)
                 .deploymentConfigs()
                 .withName(service)
                 .get()
                 .getSpec().getReplicas();
+        } catch (Throwable t) {
+            LOG.error(t.getMessage());
+            return -1;
+        }
     }
 
     private PodStatistic createPodStatistic(String projectName, String serviceName, int podCount) {
