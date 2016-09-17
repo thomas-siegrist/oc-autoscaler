@@ -4,6 +4,5 @@ spring:
     port: 5672
     username: guest
     password: guest
-influxdb:
-  host: influxdb.openshift.local
-  port: 80
+influxdbhost: influxdb
+influxdbport: 8086

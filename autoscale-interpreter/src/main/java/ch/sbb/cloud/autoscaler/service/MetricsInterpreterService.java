@@ -49,12 +49,14 @@ public class MetricsInterpreterService {
     private MetricsPersistenceService persistenceService;
 
     @Autowired
-    @Value("${influxdb.host}")
+    @Value("${influxdbhost}")
     private String influxDBHost;
 
     @Autowired
-    @Value("${influxdb.port}")
+    @Value("${influxdbport}")
     private String influxDBPort;
+
+    private InfluxDB influxDB;
 
     public void postNewEvent(MetricsEvent metricsEvent) {
 
@@ -70,14 +72,20 @@ public class MetricsInterpreterService {
     }
 
     private void writeToInfluxDB(MetricsEvent metricsEvent) {
-        InfluxDB influxDB = InfluxDBFactory.connect("http://" + influxDBHost + ":" + influxDBPort, "root", "root");
-
         Point point = Point.measurement(metricsEvent.composedUniqueId())
                 .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                 .addField("value", metricsEvent.getValue())
                 .build();
 
-        influxDB.write("wadus", "default", point);
+        influxDB().write("autoscaler", "default", point);
+    }
+
+    private InfluxDB influxDB() {
+        InfluxDB influxDB = InfluxDBFactory.connect("http://" + influxDBHost + ":" + influxDBPort, "root", "root");
+        if (influxDB != null && !influxDB.describeDatabases().contains("autoscaler")) {
+            influxDB.createDatabase("autoscaler");
+        }
+        return influxDB;
     }
 
     private MetricsStatistic fromEventToStat(MetricsEvent metricsEvent, Long currentMetricValue) {
