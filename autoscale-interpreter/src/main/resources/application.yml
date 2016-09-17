@@ -26,3 +26,6 @@ spring:
     #          create-target: create.sql
 flyway:
   baseline-on-migrate:  true
+influxdb:
+  host: localhost
+  port: 8086

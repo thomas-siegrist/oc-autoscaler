@@ -10,14 +10,19 @@ import ch.sbb.cloud.autoscaler.repository.AutoscaleConfigurationRepository;
 import ch.sbb.cloud.autoscaler.repository.ServiceLimitRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.influxdb.InfluxDB;
+import org.influxdb.InfluxDBFactory;
+import org.influxdb.dto.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by thomas on 01.09.16.
@@ -43,6 +48,14 @@ public class MetricsInterpreterService {
     @Autowired
     private MetricsPersistenceService persistenceService;
 
+    @Autowired
+    @Value("${influxdb.host}")
+    private String influxDBHost;
+
+    @Autowired
+    @Value("${influxdb.port}")
+    private String influxDBPort;
+
     public void postNewEvent(MetricsEvent metricsEvent) {
 
         // Calculate the overall value only once...
@@ -51,7 +64,20 @@ public class MetricsInterpreterService {
         persistenceService.persistMetricsEvent(metricsEvent);
         persistenceService.persistMetricsStatistic(fromEventToStat(metricsEvent, value));
 
+        writeToInfluxDB(metricsEvent);
+
         interpretEvent(metricsEvent, value);
+    }
+
+    private void writeToInfluxDB(MetricsEvent metricsEvent) {
+        InfluxDB influxDB = InfluxDBFactory.connect("http://" + influxDBHost + ":" + influxDBPort, "root", "root");
+
+        Point point = Point.measurement(metricsEvent.composedUniqueId())
+                .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                .addField("value", metricsEvent.getValue())
+                .build();
+
+        influxDB.write("wadus", "default", point);
     }
 
     private MetricsStatistic fromEventToStat(MetricsEvent metricsEvent, Long currentMetricValue) {
