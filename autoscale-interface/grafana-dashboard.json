@@ -1,5 +1,5 @@
 {
-  "id": 2,
+  "id": 1,
   "title": "Autoscaler",
   "tags": [],
   "style": "dark",
@@ -212,7 +212,7 @@
                   "type": "fill"
                 }
               ],
-              "measurement": "usecase|frontendservice|NUMBER_OF_HTTP_CONNECTIONS|",
+              "measurement": "usecase|frontendservice|SERVER_SIDE_RESPONSETIME|",
               "policy": "default",
               "refId": "A",
               "resultFormat": "time_series",
@@ -390,6 +390,7 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "datasource": null,
+          "decimals": 0,
           "editable": true,
           "error": false,
           "format": "none",
@@ -486,8 +487,7 @@
               "value": "null"
             }
           ],
-          "valueName": "current",
-          "decimals": 0
+          "valueName": "current"
         },
         {
           "cacheTimeout": null,
@@ -499,6 +499,7 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "datasource": null,
+          "decimals": 0,
           "editable": true,
           "error": false,
           "format": "none",
@@ -595,8 +596,7 @@
               "value": "null"
             }
           ],
-          "valueName": "current",
-          "decimals": 0
+          "valueName": "current"
         },
         {
           "cacheTimeout": null,
@@ -608,6 +608,7 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "datasource": null,
+          "decimals": 0,
           "editable": true,
           "error": false,
           "format": "none",
@@ -704,8 +705,7 @@
               "value": "null"
             }
           ],
-          "valueName": "current",
-          "decimals": 0
+          "valueName": "current"
         },
         {
           "cacheTimeout": null,
@@ -717,6 +717,7 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "datasource": null,
+          "decimals": 0,
           "editable": true,
           "error": false,
           "format": "none",
@@ -813,8 +814,7 @@
               "value": "null"
             }
           ],
-          "valueName": "current",
-          "decimals": 0
+          "valueName": "current"
         },
         {
           "cacheTimeout": null,
@@ -826,6 +826,7 @@
             "rgba(50, 172, 45, 0.97)"
           ],
           "datasource": null,
+          "decimals": 0,
           "editable": true,
           "error": false,
           "format": "none",
@@ -922,8 +923,7 @@
               "value": "null"
             }
           ],
-          "valueName": "current",
-          "decimals": 0
+          "valueName": "current"
         }
       ],
       "title": "New row"
@@ -966,7 +966,7 @@
   },
   "refresh": "5s",
   "schemaVersion": 12,
-  "version": 11,
+  "version": 1,
   "links": [],
   "gnetId": null
 }
