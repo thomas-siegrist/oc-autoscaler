@@ -125,7 +125,7 @@
               "tags": []
             }
           ],
-          "timeFrom": "30m",
+          "timeFrom": null,
           "timeShift": null,
           "title": "Queue Depth",
           "tooltip": {
