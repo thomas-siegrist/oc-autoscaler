@@ -54,8 +54,8 @@ Build and deploy all services as Docker images to the Docker registry with the d
 
 Create all the services in openshift:
 
-    oc new-app {projectname}/autoscale-interpreter
-    oc new-app {projectname}/autoscale-scaler
+    oc new-app {project}/autoscale-interpreter
+    oc new-app {project}/autoscale-scaler
 
 The Autoscale Interpreter has a Rest-Service and an according Swagger-UI that allows us to configure the Autoscale Interpreter in running state. In order to be accessible, expose the service over autoscale-interpreter.openshift.local
 
