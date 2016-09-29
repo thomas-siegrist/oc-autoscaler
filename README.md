@@ -22,15 +22,15 @@ Login Docker Docker-Hub with your account:
 Pull InfluxDB, tag it and push it to the local Openshift registry:
 
     docker pull tutum/influxdb
-    docker tag tutum/influxdb registry.openshift.local/usecase/influxdb
+    docker tag tutum/influxdb registry.openshift.local/{project}/influxdb
     docker login registry.openshift.local
-    docker push registry.openshift.local/usecase/influxdb
+    docker push registry.openshift.local/{project}/influxdb
 
 Login to Openshift, choose your project and setup an influxdb service:
 
     oc login
-    oc project usecase
-    oc new-app usecase/influxdb
+    oc project {project}
+    oc new-app {project}/influxdb
 
 Expose the InfluxDB service (Port 8086) in order to be accessible from outside of openshift. We used Grafana to visualize the data in a dashboard.
 
