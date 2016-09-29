@@ -73,8 +73,8 @@ Insert the following code-snippet right after it:
 			name: STAGE
 			value: dev 
 
-  
 #### Test the setup
-Execute a REST POST and checkout one of the predefined shopping-carts. Possible values are 0, 1, 2 or 3:
+Open the Grafana UI, produce some load and watch the metrics and pods going up and down.
 
-    POST http://frontendservice.openshift.local/checkout/1  
+#### Cheers
+Have fun and be free to contribute if you have some valuable inputs =) !!
