@@ -38,7 +38,7 @@ Connect a Grafana instance to the exposed InfluxDB Service:
 ![Alt DataSource](readme-resources/Grafana-DataSource-Config.png?raw=true "DataSource")
 
 Import the predefined dashboard, which you can find in the root folder, named *Grafana-dashboard.json* . It looks like this:
-![Alt DataSource](readme-resources/Grafana-Autoscaler-Dashboard.png?raw=true "DataSource")
+![Alt DataSource](readme-resources/Grafana-Autoscaler-Dashboard-v2.png?raw=true "DataSource")
 
 #### Setup Autoscaler
     git clone https://github.com/thomas-siegrist/oc-autoscaler.git
