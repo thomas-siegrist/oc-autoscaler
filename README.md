@@ -1,6 +1,6 @@
-# A simple UseCase to test Autoscalers
+# An Openshift Autoscaler prototype
 
-*This is a strongly simplified and headless Webshop for testing Autoscalers. It's built on the basics of a Microservice-Architecture and is being configured to be easily deployable on Docker-Based infrastructure (tested only on Openshift)*
+*This prototype provides very specific autoscaling of services running on openshift, based on various self-defined metrics. We wrote this code during our Semesters-Work. We ended up with a prototype that delivers surprisingly nice results, considering how little time we were to spend. Yet it is still in prototype shape and needs some refactoring, testing and improvements in order to be production-redy. The code is quick n' dirty, functionality is way better than expected. Have fun and be free to contribute if you have some valuable inputs =) !!*
 
 ## Deployment on Openshift
 #### Prerequisites
@@ -75,6 +75,3 @@ Insert the following code-snippet right after it:
 
 #### Test the setup
 Open the Grafana UI, produce some load and watch the metrics and pods going up and down.
-
-#### Cheers
-Have fun and be free to contribute if you have some valuable inputs =) !!
